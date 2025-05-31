@@ -18,7 +18,6 @@ export default {
   'pages.login.captcha.required': '確認コードを入力してください！',
   'pages.login.phoneLogin.getVerificationCode': '確認コードを取得',
   'pages.getCaptchaSecondText': '秒',
-  'pages.login.rememberMe': 'Remember me',
   'pages.login.forgotPassword': 'パスワードをお忘れですか？',
   'pages.login.submit': 'ログイン',
   'pages.login.loginWith': 'その他のログイン方法：',

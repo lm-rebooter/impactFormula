@@ -21,6 +21,7 @@ import Settings from '../../../../config/defaultSettings';
 import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
 import { createStyles } from 'antd-style';
+import './index.less';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -95,9 +96,17 @@ const LoginMessage: React.FC<{
   );
 };
 
+const LogoRow = () => (
+  <div className="login-logo-row">
+    <img src="/logo.png" alt="D2 logo" className="login-logo-img" />
+    <span className="login-logo-x" aria-label="and">×</span>
+    <img src="/logo.svg" alt="G logo" className="login-logo-img" />
+  </div>
+);
+
 const Login: React.FC = () => {
   const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
-  const [type, setType] = useState<string>('account');
+  const [type, setType] = useState<string>('login');
   const { initialState, setInitialState } = useModel('@@initialState');
   const { styles } = useStyles();
   const intl = useIntl();
@@ -116,12 +125,11 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (values: API.LoginParams) => {
     try {
-      // 登录
-      const msg = await login({ ...values, type });
+      const msg = await login({ ...values, type: 'account' });
       if (msg.status === 'ok') {
         const defaultLoginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
-          defaultMessage: '登录成功！',
+          defaultMessage: 'Login successful!',
         });
         message.success(defaultLoginSuccessMessage);
         await fetchUserInfo();
@@ -129,241 +137,209 @@ const Login: React.FC = () => {
         history.push(urlParams.get('redirect') || '/');
         return;
       }
-      console.log(msg);
-      // 如果失败去设置用户错误信息
       setUserLoginState(msg);
     } catch (error) {
       const defaultLoginFailureMessage = intl.formatMessage({
         id: 'pages.login.failure',
-        defaultMessage: '登录失败，请重试！',
+        defaultMessage: 'Login failed, please try again!',
       });
-      console.log(error);
       message.error(defaultLoginFailureMessage);
     }
   };
+
+  // Register logic (local mock)
+  const handleRegister = async (values: any) => {
+    if (values.password !== values.confirmPassword) {
+      message.error('Passwords do not match!');
+      return;
+    }
+    message.success('Registration successful, please login!');
+    setType('login');
+  };
+
   const { status, type: loginType } = userLoginState;
 
   return (
-    <div className={styles.container}>
-      <Helmet>
-        <title>
-          {intl.formatMessage({
-            id: 'menu.login',
-            defaultMessage: '登录页',
-          })}
-          - {Settings.title}
-        </title>
-      </Helmet>
-      <Lang />
-      <div
-        style={{
-          flex: '1',
-          padding: '32px 0',
-        }}
-      >
-        <LoginForm
-          contentStyle={{
-            minWidth: 280,
-            maxWidth: '75vw',
-          }}
-          logo={<img alt="logo" src="/logo.svg" />}
-          title="Ant Design"
-          subTitle={intl.formatMessage({ id: 'pages.layouts.userLayout.title' })}
-          initialValues={{
-            autoLogin: true,
-          }}
-          actions={[
-            <FormattedMessage
-              key="loginWith"
-              id="pages.login.loginWith"
-              defaultMessage="其他登录方式"
-            />,
-            <ActionIcons key="icons" />,
-          ]}
-          onFinish={async (values) => {
-            await handleSubmit(values as API.LoginParams);
-          }}
-        >
-          <Tabs
-            activeKey={type}
-            onChange={setType}
-            centered
-            items={[
-              {
-                key: 'account',
-                label: intl.formatMessage({
-                  id: 'pages.login.accountLogin.tab',
-                  defaultMessage: '账户密码登录',
-                }),
+    <div className="login-center-container">
+      <div className="login-main">
+        <div className="login-content">
+          <LogoRow />
+          <div className="login-slogan">
+            {intl.formatMessage({ id: 'pages.layouts.userLayout.title', defaultMessage: 'Enabling businesses to divert surplus for good.' })}
+          </div>
+          <LoginForm
+            contentStyle={{ minWidth: 320, maxWidth: '75vw' }}
+            initialValues={{ autoLogin: true }}
+            submitter={{
+              searchConfig: {
+                submitText: type === 'login' ? 'Login' : 'Register',
               },
-              {
-                key: 'mobile',
-                label: intl.formatMessage({
-                  id: 'pages.login.phoneLogin.tab',
-                  defaultMessage: '手机号登录',
-                }),
-              },
-            ]}
-          />
-
-          {status === 'error' && loginType === 'account' && (
-            <LoginMessage
-              content={intl.formatMessage({
-                id: 'pages.login.accountLogin.errorMessage',
-                defaultMessage: '账户或密码错误(admin/ant.design)',
-              })}
-            />
-          )}
-          {type === 'account' && (
-            <>
-              <ProFormText
-                name="username"
-                fieldProps={{
-                  size: 'large',
-                  prefix: <UserOutlined />,
-                }}
-                placeholder={intl.formatMessage({
-                  id: 'pages.login.username.placeholder',
-                  defaultMessage: '用户名: admin or user',
-                })}
-                rules={[
-                  {
-                    required: true,
-                    message: (
-                      <FormattedMessage
-                        id="pages.login.username.required"
-                        defaultMessage="请输入用户名!"
-                      />
-                    ),
-                  },
-                ]}
-              />
-              <ProFormText.Password
-                name="password"
-                fieldProps={{
-                  size: 'large',
-                  prefix: <LockOutlined />,
-                }}
-                placeholder={intl.formatMessage({
-                  id: 'pages.login.password.placeholder',
-                  defaultMessage: '密码: ant.design',
-                })}
-                rules={[
-                  {
-                    required: true,
-                    message: (
-                      <FormattedMessage
-                        id="pages.login.password.required"
-                        defaultMessage="请输入密码！"
-                      />
-                    ),
-                  },
-                ]}
-              />
-            </>
-          )}
-
-          {status === 'error' && loginType === 'mobile' && <LoginMessage content="验证码错误" />}
-          {type === 'mobile' && (
-            <>
-              <ProFormText
-                fieldProps={{
-                  size: 'large',
-                  prefix: <MobileOutlined />,
-                }}
-                name="mobile"
-                placeholder={intl.formatMessage({
-                  id: 'pages.login.phoneNumber.placeholder',
-                  defaultMessage: '手机号',
-                })}
-                rules={[
-                  {
-                    required: true,
-                    message: (
-                      <FormattedMessage
-                        id="pages.login.phoneNumber.required"
-                        defaultMessage="请输入手机号！"
-                      />
-                    ),
-                  },
-                  {
-                    pattern: /^1\d{10}$/,
-                    message: (
-                      <FormattedMessage
-                        id="pages.login.phoneNumber.invalid"
-                        defaultMessage="手机号格式错误！"
-                      />
-                    ),
-                  },
-                ]}
-              />
-              <ProFormCaptcha
-                fieldProps={{
-                  size: 'large',
-                  prefix: <LockOutlined />,
-                }}
-                captchaProps={{
-                  size: 'large',
-                }}
-                placeholder={intl.formatMessage({
-                  id: 'pages.login.captcha.placeholder',
-                  defaultMessage: '请输入验证码',
-                })}
-                captchaTextRender={(timing, count) => {
-                  if (timing) {
-                    return `${count} ${intl.formatMessage({
-                      id: 'pages.getCaptchaSecondText',
-                      defaultMessage: '获取验证码',
-                    })}`;
-                  }
-                  return intl.formatMessage({
-                    id: 'pages.login.phoneLogin.getVerificationCode',
-                    defaultMessage: '获取验证码',
-                  });
-                }}
-                name="captcha"
-                rules={[
-                  {
-                    required: true,
-                    message: (
-                      <FormattedMessage
-                        id="pages.login.captcha.required"
-                        defaultMessage="请输入验证码！"
-                      />
-                    ),
-                  },
-                ]}
-                onGetCaptcha={async (phone) => {
-                  const result = await getFakeCaptcha({
-                    phone,
-                  });
-                  if (!result) {
-                    return;
-                  }
-                  message.success('获取验证码成功！验证码为：1234');
-                }}
-              />
-            </>
-          )}
-          <div
-            style={{
-              marginBottom: 24,
+            }}
+            onFinish={async (values) => {
+              if (type === 'login') {
+                await handleSubmit(values as API.LoginParams);
+              } else {
+                await handleRegister(values);
+              }
             }}
           >
-            <ProFormCheckbox noStyle name="autoLogin">
-              <FormattedMessage id="pages.login.rememberMe" defaultMessage="自动登录" />
-            </ProFormCheckbox>
-            <a
-              style={{
-                float: 'right',
-              }}
-            >
-              <FormattedMessage id="pages.login.forgotPassword" defaultMessage="忘记密码" />
-            </a>
-          </div>
-        </LoginForm>
+            <Tabs
+              activeKey={type}
+              onChange={setType}
+              centered
+              items={[
+                {
+                  key: 'login',
+                  label: 'Account Login',
+                },
+                {
+                  key: 'register',
+                  label: 'Register',
+                },
+              ]}
+            />
+
+            {/* Login form */}
+            {type === 'login' && (
+              <>
+                {status === 'error' && loginType === 'account' && (
+                  <LoginMessage
+                    content={intl.formatMessage({
+                      id: 'pages.login.accountLogin.errorMessage',
+                      defaultMessage: 'Incorrect username or password (admin/ant.design)',
+                    })}
+                  />
+                )}
+                <ProFormText
+                  name="username"
+                  fieldProps={{
+                    size: 'large',
+                    prefix: <UserOutlined />,
+                    tabIndex: 0,
+                    'aria-label': 'Username',
+                  }}
+                  placeholder={intl.formatMessage({
+                    id: 'pages.login.username.placeholder',
+                    defaultMessage: 'Username: admin or user',
+                  })}
+                  rules={[
+                    { required: true, message: 'Please input your username!' },
+                  ]}
+                />
+                <ProFormText.Password
+                  name="password"
+                  fieldProps={{
+                    size: 'large',
+                    prefix: <LockOutlined />,
+                    tabIndex: 0,
+                    'aria-label': 'Password',
+                  }}
+                  placeholder={intl.formatMessage({
+                    id: 'pages.login.password.placeholder',
+                    defaultMessage: 'Password: ant.design',
+                  })}
+                  rules={[
+                    { required: true, message: 'Please input your password!' },
+                  ]}
+                />
+                <div className="login-switch-row">
+                  <span>No account?</span>
+                  <a
+                    tabIndex={0}
+                    aria-label="Go to register"
+                    className="login-switch-link text-blue-500 hover:underline cursor-pointer"
+                    onClick={() => setType('register')}
+                    onKeyDown={(e) => { if (e.key === 'Enter') setType('register'); }}
+                  >
+                    Register
+                  </a>
+                </div>
+              </>
+            )}
+
+            {/* Register form */}
+            {type === 'register' && (
+              <>
+                <ProFormText
+                  name="username"
+                  fieldProps={{
+                    size: 'large',
+                    prefix: <UserOutlined />,
+                    tabIndex: 0,
+                    'aria-label': 'Username',
+                  }}
+                  placeholder="Username"
+                  rules={[
+                    { required: true, message: 'Please input your username!' },
+                  ]}
+                />
+                <ProFormText
+                  name="email"
+                  fieldProps={{
+                    size: 'large',
+                    prefix: <UserOutlined />,
+                    tabIndex: 0,
+                    'aria-label': 'Email',
+                  }}
+                  placeholder="Email"
+                  rules={[
+                    { required: true, message: 'Please input your email!' },
+                    { type: 'email', message: 'Invalid email format!' },
+                  ]}
+                />
+                <ProFormText.Password
+                  name="password"
+                  fieldProps={{
+                    size: 'large',
+                    prefix: <LockOutlined />,
+                    tabIndex: 0,
+                    'aria-label': 'Password',
+                  }}
+                  placeholder="Password"
+                  rules={[
+                    { required: true, message: 'Please input your password!' },
+                    { min: 6, message: 'Password must be at least 6 characters!' },
+                  ]}
+                />
+                <ProFormText.Password
+                  name="confirmPassword"
+                  fieldProps={{
+                    size: 'large',
+                    prefix: <LockOutlined />,
+                    tabIndex: 0,
+                    'aria-label': 'Confirm Password',
+                  }}
+                  placeholder="Confirm Password"
+                  rules={[
+                    { required: true, message: 'Please confirm your password!' },
+                    ({ getFieldValue }: any) => ({
+                      validator(_, value) {
+                        if (!value || getFieldValue('password') === value) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(new Error('Passwords do not match!'));
+                      },
+                    }),
+                  ]}
+                />
+                <div className="login-switch-row">
+                  <span>Already have an account?</span>
+                  <a
+                    tabIndex={0}
+                    aria-label="Go to login"
+                    className="login-switch-link text-blue-500 hover:underline cursor-pointer"
+                    onClick={() => setType('login')}
+                    onKeyDown={(e) => { if (e.key === 'Enter') setType('login'); }}
+                  >
+                    Login
+                  </a>
+                </div>
+              </>
+            )}
+          </LoginForm>
+        </div>
       </div>
-      <Footer />
+      <Footer className="login-footer" />
     </div>
   );
 };
