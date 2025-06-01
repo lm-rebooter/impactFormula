@@ -9,20 +9,23 @@ import {
   ProFormText,
   ProFormTextArea,
   ProTable,
+  ProForm,
+  ProFormSelect,
+  ProFormDatePicker,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl } from '@umijs/max';
-import { Button, Drawer, Input, message } from 'antd';
+import { Button, Drawer, Input, message, Form, DatePicker, Space } from 'antd';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 
+const { RangePicker } = DatePicker;
+
 /**
- * @en-US Add node
- * @zh-CN 添加节点
+ * Add node
  * @param fields
  */
 const handleAdd = async (fields: API.RuleListItem) => {
-  const hide = message.loading('正在添加');
+  const hide = message.loading('Adding...');
   try {
     await addRule({ ...fields });
     hide();
@@ -36,13 +39,11 @@ const handleAdd = async (fields: API.RuleListItem) => {
 };
 
 /**
- * @en-US Update node
- * @zh-CN 更新节点
- *
+ * Update node
  * @param fields
  */
 const handleUpdate = async (fields: FormValueType) => {
-  const hide = message.loading('Configuring');
+  const hide = message.loading('Configuring...');
   try {
     await updateRule({
       name: fields.name,
@@ -61,13 +62,11 @@ const handleUpdate = async (fields: FormValueType) => {
 };
 
 /**
- *  Delete node
- * @zh-CN 删除节点
- *
+ * Delete node
  * @param selectedRows
  */
 const handleRemove = async (selectedRows: API.RuleListItem[]) => {
-  const hide = message.loading('正在删除');
+  const hide = message.loading('Deleting...');
   if (!selectedRows) return true;
   try {
     await removeRule({
@@ -85,274 +84,218 @@ const handleRemove = async (selectedRows: API.RuleListItem[]) => {
 
 const TableList: React.FC = () => {
   /**
-   * @en-US Pop-up window of new window
-   * @zh-CN 新建窗口的弹窗
-   *  */
+   * Pop-up window of new window
+   */
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
   /**
-   * @en-US The pop-up window of the distribution update window
-   * @zh-CN 分布更新窗口的弹窗
-   * */
+   * The pop-up window of the distribution update window
+   */
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
 
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
 
-  /**
-   * @en-US International configuration
-   * @zh-CN 国际化配置
-   * */
-  const intl = useIntl();
+  // International configuration
 
-  const columns: ProColumns[] = [
-    {
-      title: (
-        <FormattedMessage
-          id="pages.searchTable.updateForm.ruleName.nameLabel"
-          defaultMessage="Rule name"
-        />
-      ),
-      dataIndex: 'name',
-      tip: 'The rule name is the unique key',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
-      },
-    },
-    {
-      title: <FormattedMessage id="pages.searchTable.titleDesc" defaultMessage="Description" />,
-      dataIndex: 'desc',
-      valueType: 'textarea',
-    },
-    {
-      title: (
-        <FormattedMessage
-          id="pages.searchTable.titleCallNo"
-          defaultMessage="Number of service calls"
-        />
-      ),
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val: string) =>
-        `${val}${intl.formatMessage({
-          id: 'pages.searchTable.tenThousand',
-          defaultMessage: ' 万 ',
-        })}`,
-    },
-    {
-      title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
-      dataIndex: 'status',
-      hideInForm: true,
-      valueEnum: {
-        0: {
-          text: (
-            <FormattedMessage
-              id="pages.searchTable.nameStatus.default"
-              defaultMessage="Shut down"
-            />
-          ),
-          status: 'Default',
-        },
-        1: {
-          text: (
-            <FormattedMessage id="pages.searchTable.nameStatus.running" defaultMessage="Running" />
-          ),
-          status: 'Processing',
-        },
-        2: {
-          text: (
-            <FormattedMessage id="pages.searchTable.nameStatus.online" defaultMessage="Online" />
-          ),
-          status: 'Success',
-        },
-        3: {
-          text: (
-            <FormattedMessage
-              id="pages.searchTable.nameStatus.abnormal"
-              defaultMessage="Abnormal"
-            />
-          ),
-          status: 'Error',
-        },
-      },
-    },
-    {
-      title: (
-      //   <ProFormDateRangePicker
-      //   width="md"
-      //   name={['contract', 'createTime']}
-      //   label="Contract Effective Time"
-      // />
+  const [type, setType] = useState<string>();
+  const [filterParams, setFilterParams] = useState<any>({});
+  const [form] = Form.useForm();
 
+  // 获取所有可用的 Site 和 Area 选项
+  const siteOptions = React.useMemo(() => {
+    const sites = new Set();
+    const areas = new Set();
+    // 这里可以从 mock 数据中获取，实际项目中应该从后端获取
+    for (let i = 0; i < 10; i++) {
+      sites.add(`Site ${String.fromCharCode(65 + i)}`);
+      areas.add(`Area ${i + 1}`);
+    }
+    return {
+      sites: Array.from(sites).map(site => ({ label: site, value: site })),
+      areas: Array.from(areas).map(area => ({ label: area, value: area }))
+    };
+  }, []);
 
-        <FormattedMessage
-          id="pages.searchTable.titleUpdatedAt"
-          defaultMessage="Last scheduled time"
-        />
-      ),
-      sorter: true,
-      dataIndex: 'updatedAt',
-      valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return (
-            <Input
-              {...rest}
-              placeholder={intl.formatMessage({
-                id: 'pages.searchTable.exception',
-                defaultMessage: 'Please enter the reason for the exception!',
-              })}
-            />
-          );
-        }
-        return defaultRender(item);
-      },
-    },
+  // 动态columns
+  const [currentType, setCurrentType] = useState('period');
+  const isMonthly = currentType === 'monthly';
+  console.log(isMonthly,'isMonthly???')
+
+  const columnsWeekly: ProColumns[] = [
+    { title: 'Date', dataIndex: 'date', valueType: 'date', sorter: true },
+    { title: 'Month', dataIndex: 'month', valueType: 'text', sorter: true },
+    { title: 'Site', dataIndex: 'site', valueType: 'text', sorter: true },
+    { title: 'Weight', dataIndex: 'weight', valueType: 'digit', sorter: true },
+    { title: 'Requests', dataIndex: 'requests', valueType: 'digit', sorter: true },
+    { title: 'Fulfilled Requests', dataIndex: 'fulfilledRequests', valueType: 'digit', sorter: true },
+    { title: 'Title', dataIndex: 'title', valueType: 'text', sorter: true },
+    { title: 'Area', dataIndex: 'area', valueType: 'text', sorter: true },
+    { title: 'No. of Links', dataIndex: 'links', valueType: 'digit', sorter: true },
+    { title: 'Impressions', dataIndex: 'impressions', valueType: 'digit', sorter: true },
+    { title: 'Saved ($)', dataIndex: 'saved', valueType: 'digit', sorter: true },
+  ];
+
+  const columnsMonthly: ProColumns[] = [
+    { title: 'Month', dataIndex: 'month', valueType: 'text', sorter: true },
+    { title: 'Site', dataIndex: 'site', valueType: 'text', sorter: true },
+    { title: 'Food Saved', dataIndex: 'foodSaved', valueType: 'text', sorter: true },
+    { title: 'CO2 Saved', dataIndex: 'co2Saved', valueType: 'text', sorter: true },
+    { title: 'Requests', dataIndex: 'requests', valueType: 'digit', sorter: true },
+    { title: 'Fulfilled Requests', dataIndex: 'fulfilledRequests', valueType: 'text', sorter: true },
+    { title: 'Families Benefitted', dataIndex: 'familiesBenefitted', valueType: 'text', sorter: true },
+    { title: 'No. of Links', dataIndex: 'links', valueType: 'digit', sorter: true },
+    { title: 'Saved ($)', dataIndex: 'saved', valueType: 'digit', sorter: true },
     {
-      title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Operating" />,
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (_, record) => [
-        <a
-          key="config"
-          onClick={() => {
-            handleUpdateModalOpen(true);
-            setCurrentRow(record);
-          }}
+      title: 'Download Report',
+      dataIndex: 'download',
+      render: (_: unknown, record: any) => (
+        <Button
+          type="link"
+          aria-label="Download Report"
+          tabIndex={0}
+          onClick={() => handleDownload(record)}
+          onKeyDown={e => { if (e.key === 'Enter') handleDownload(record); }}
         >
-          <FormattedMessage id="pages.searchTable.config" defaultMessage="Configuration" />
-        </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
-          <FormattedMessage
-            id="pages.searchTable.subscribeAlert"
-            defaultMessage="Subscribe to alerts"
-          />
-        </a>,
-      ],
+          Download
+        </Button>
+      ),
     },
   ];
 
+  const columns = currentType === 'monthly' ? columnsMonthly : columnsWeekly;
+
+  const handleDownload = (record: any) => {
+    // Replace with actual download logic
+    // For example: window.open(`/api/download?id=${record.key}`)
+    message.success(`Downloaded report: ${record.title || record.key}`);
+  };
+
+  const handleExport = () => {
+    // TODO: Implement period export logic
+    message.info('EXPORT');
+  };
+
+  const handleExportByDaySite = () => {
+    // TODO: Implement period export by day and site logic
+    message.info('EXPORT BY DAY AND SITE');
+  };
+
   return (
     <PageContainer>
-      <ProTable<API.RuleListItem, API.PageParams>
-        headerTitle={intl.formatMessage({
-          id: 'pages.searchTable.title',
-          defaultMessage: 'Enquiry form',
-        })}
-        actionRef={actionRef}
-        rowKey="key"
-        search={{
-          labelWidth: 120,
+      <ProForm
+        form={form}
+        layout="horizontal"
+        grid
+        rowProps={{ gutter: [24, 16] }}
+        initialValues={{ type: 'period' }}
+        onFinish={values => {
+          setFilterParams(values);
         }}
-        toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleModalOpen(true);
-            }}
-          >
-            <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
-          </Button>,
-        ]}
-        request={rule}
-        columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
+        onReset={() => {
+          setFilterParams({});
         }}
-      />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              <FormattedMessage id="pages.searchTable.chosen" defaultMessage="Chosen" />{' '}
-              <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
-              <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
-              &nbsp;&nbsp;
-              <span>
-                <FormattedMessage
-                  id="pages.searchTable.totalServiceCalls"
-                  defaultMessage="Total number of service calls"
-                />{' '}
-                {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)}{' '}
-                <FormattedMessage id="pages.searchTable.tenThousand" defaultMessage="万" />
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            <FormattedMessage
-              id="pages.searchTable.batchDeletion"
-              defaultMessage="Batch deletion"
-            />
-          </Button>
-          <Button type="primary">
-            <FormattedMessage
-              id="pages.searchTable.batchApproval"
-              defaultMessage="Batch approval"
-            />
-          </Button>
-        </FooterToolbar>
-      )}
-      <ModalForm
-        title={intl.formatMessage({
-          id: 'pages.searchTable.createForm.newRule',
-          defaultMessage: 'New rule',
-        })}
-        width="400px"
-        open={createModalOpen}
-        onOpenChange={handleModalOpen}
-        onFinish={async (value) => {
-          const success = await handleAdd(value as API.RuleListItem);
-          if (success) {
-            handleModalOpen(false);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
+        onValuesChange={(changed, all) => {
+          if ('type' in changed) setCurrentType(changed.type);
+        }}
+        submitter={{
+          render: (props, doms) => (
+            <Space size={16} style={{ margin: '8px 0' }}>
+              {doms[0]}
+              {doms[1]}
+              {currentType === 'period' && <>
+                <Button onClick={handleExport} key="export">EXPORT</Button>
+                <Button onClick={handleExportByDaySite} key="exportByDaySite">EXPORT BY DAY AND SITE</Button>
+              </>}
+            </Space>
+          ),
         }}
       >
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: (
-                <FormattedMessage
-                  id="pages.searchTable.ruleName"
-                  defaultMessage="Rule name is required"
-                />
-              ),
-            },
+        <ProFormSelect
+          name="type"
+          label="Type"
+          initialValue="period"
+          rules={[{ required: true, message: 'Please select type' }]}
+          options={[
+            { label: 'Period', value: 'period' },
+            { label: 'Monthly', value: 'monthly' },
           ]}
-          width="md"
-          name="name"
+          colProps={{ span: 6 }}
+          fieldProps={{
+            allowClear: false,
+            onChange: (val: string) => {
+              if (val !== 'monthly') {
+                form.setFieldsValue({ startTime: undefined, endTime: undefined, monthRange: undefined });
+              }
+            },
+          }}
         />
-        <ProFormTextArea width="md" name="desc" />
-      </ModalForm>
+        <Form.Item shouldUpdate={(prev, curr) => prev.type !== curr.type} style={{ marginBottom: 0 }}>
+          {() =>
+            form.getFieldValue('type') === 'period' && (
+              <Form.Item
+                label="Range"
+                name="monthRange"
+                rules={[{ required: true, message: 'Please select month range' }]}
+              >
+                <RangePicker
+                  picker="month"
+                  style={{ width: 320 }}
+                  placeholder={['Start Month', 'End Month']}
+                  allowClear={false}
+                  onChange={(_dates: any, dateStrings: [string, string]) => {
+                    form.setFieldsValue({
+                      startTime: dateStrings[0],
+                      endTime: dateStrings[1],
+                    });
+                  }}
+                />
+              </Form.Item>
+            )
+          }
+        </Form.Item>
+        <ProFormSelect
+          name="site"
+          label="Site"
+          placeholder="Please select site"
+          colProps={{ span: 6 }}
+          options={siteOptions.sites}
+          fieldProps={{
+            allowClear: true,
+          }}
+        />
+        <Form.Item shouldUpdate={(prev, curr) => prev.type !== curr.type} style={{ marginBottom: 0 }}>
+          {() =>
+            form.getFieldValue('type') !== 'monthly' && (
+              <ProFormSelect
+                name="area"
+                label="Area"
+                placeholder="Please select area"
+                colProps={{ span: 6 }}
+                options={siteOptions.areas}
+                fieldProps={{
+                  allowClear: true,
+                  style: { width: 200 },
+                }}
+              />
+            )
+          }
+        </Form.Item>
+      </ProForm>
+      <ProTable<API.RuleListItem, API.PageParams>
+        actionRef={actionRef}
+        rowKey="key"
+        search={false}
+        options={false}
+        toolBarRender={false}
+        params={filterParams}
+        request={async (params, sorter, filter) => {
+          return rule(params);
+        }}
+        columns={columns}
+      />
+     
       <UpdateForm
         onSubmit={async (value) => {
           const success = await handleUpdate(value);
