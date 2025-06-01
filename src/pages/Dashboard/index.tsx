@@ -11,10 +11,18 @@ import {
   ProTable,
   ProForm,
   ProFormSelect,
+  ProCard,
   ProFormDatePicker,
 } from '@ant-design/pro-components';
 import { Button, message, Form, DatePicker, Space } from 'antd';
 import React, { useRef, useState } from 'react';
+import scaleIcon from './assets/scale.svg';
+import leafsIcon from './assets/leafs.svg';
+import carIcon from './assets/car.svg';
+import waterIcon from './assets/water.svg';
+import treeIcon from './assets/tree.svg';
+import electricityIcon from './assets/electricity.svg';
+import gasIcon from './assets/gas.svg';
 
 const { RangePicker } = DatePicker;
 
@@ -205,6 +213,269 @@ const TableList: React.FC = () => {
           }
         </Form.Item>
       </ProForm>
+
+      <ProCard
+        gutter={[{ xs: 8, sm: 8, md: 12, lg: 16, xl: 20 }, 12]}
+        style={{ marginBlockStart: 12, background: 'transparent' }}
+        bodyStyle={{ padding: 0, background: 'transparent' }}
+      >
+        <ProCard
+          bordered
+          style={{
+            borderRadius: 12,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+            minWidth: 180,
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 18px',
+            margin: 0,
+            background: '#fff',
+          }}
+          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
+        >
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              background: '#e6f4f1',
+              marginRight: 12,
+              flexShrink: 0,
+            }}
+          >
+            <img src={scaleIcon} alt="Total Food Rescued Icon" style={{ width: 18, height: 18 }} />
+          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>Total Food Rescued</span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>18,973 KG</span>
+          </div>
+        </ProCard>
+
+        <ProCard
+          bordered
+          style={{
+            borderRadius: 12,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+            minWidth: 180,
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 18px',
+            margin: 0,
+            background: '#fff',
+          }}
+          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
+        >
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              background: '#e6f4f1',
+              marginRight: 12,
+              flexShrink: 0,
+            }}
+          >
+            <img src={leafsIcon} alt="CO2 Saved Icon" style={{ width: 18, height: 18 }} />
+          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>C02 Saved</span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>5,190 kg</span>
+          </div>
+        </ProCard>
+        
+
+        <ProCard
+          bordered
+          style={{
+            borderRadius: 12,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+            minWidth: 180,
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 18px',
+            margin: 0,
+            background: '#fff',
+          }}
+          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
+        >
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              background: '#e6f4f1',
+              marginRight: 12,
+              flexShrink: 0,
+            }}
+          >
+            <img src={waterIcon} alt="Water Saved Icon" style={{ width: 18, height: 18 }} />
+          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>Water Saved</span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>736,000 litres</span>
+          </div>
+        </ProCard>
+        <ProCard
+          bordered
+          style={{
+            borderRadius: 12,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+            minWidth: 180,
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 18px',
+            margin: 0,
+            background: '#fff',
+          }}
+          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
+        >
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              background: '#e6f4f1',
+              marginRight: 12,
+              flexShrink: 0,
+            }}
+          >
+            <img src={treeIcon} alt="Equiv Trees Planted Icon" style={{ width: 18, height: 18 }} />
+          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>Equiv Trees Planted</span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>108</span>
+          </div>
+        </ProCard>
+      </ProCard>
+
+      <ProCard
+        gutter={[{ xs: 8, sm: 8, md: 12, lg: 16, xl: 20 }, 12]}
+        style={{ marginBlockStart: 12, background: 'transparent' }}
+        bodyStyle={{ padding: 0, background: 'transparent' }}
+      >
+        <ProCard
+          bordered
+          style={{
+            borderRadius: 12,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+            minWidth: 180,
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 18px',
+            margin: 0,
+            background: '#fff',
+          }}
+          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
+        >
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              background: '#e6f4f1',
+              marginRight: 12,
+              flexShrink: 0,
+            }}
+          >
+            <img src={carIcon} alt="Car KM Off The Road Icon" style={{ width: 18, height: 18 }} />
+          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>Car KM Off The Road</span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>24,143</span>
+          </div>
+        </ProCard>
+        <ProCard
+          bordered
+          style={{
+            borderRadius: 12,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+            minWidth: 180,
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 18px',
+            margin: 0,
+            background: '#fff',
+          }}
+          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
+        >
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              background: '#e6f4f1',
+              marginRight: 12,
+              flexShrink: 0,
+            }}
+          >
+            <img src={electricityIcon} alt="Electricity Saved Icon" style={{ width: 18, height: 18 }} />
+          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>Electricity Saved</span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>6,499 kWh</span>
+          </div>
+        </ProCard>
+        <ProCard
+          bordered
+          style={{
+            borderRadius: 12,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+            minWidth: 180,
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 18px',
+            margin: 0,
+            background: '#fff',
+          }}
+          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
+        >
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              background: '#e6f4f1',
+              marginRight: 12,
+              flexShrink: 0,
+            }}
+          >
+            <img src={gasIcon} alt="Natural Gas Saved Icon" style={{ width: 18, height: 18 }} />
+          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>Natural Gas Saved</span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>967 litres</span>
+          </div>
+        </ProCard>
+      </ProCard>
+
       <ProTable<API.RuleListItem, API.PageParams>
         actionRef={actionRef}
         rowKey="key"
