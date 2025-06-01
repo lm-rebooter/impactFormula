@@ -38,7 +38,7 @@ export default [
     path: '/impactFormula',
     name: 'impactFormula',
     icon: 'form',
-    component: './TableList',
+    component: './ImpactFormula',
   },
   {
     name: 'account',
