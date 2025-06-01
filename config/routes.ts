@@ -29,26 +29,33 @@ export default [
     component: './Dashboard',
   },
   {
-    path: '/admin',
-    name: 'admin',
-    icon: 'crown',
-    routes: [
-      {
-        path: '/admin',
-        redirect: '/admin/sub-page',
-      },
-      {
-        path: '/admin/sub-page',
-        name: 'sub-page',
-        component: './Admin',
-      },
-    ],
+    path: '/reports',
+    name: 'reports', 
+    icon: 'CheckCircleOutlined',
+    component: './Reports',
   },
   {
-    name: 'list.table-list',
-    icon: 'table',
-    path: '/list',
+    path: '/impactFormula',
+    name: 'impactFormula',
+    icon: 'form',
     component: './TableList',
+  },
+  {
+    name: 'account',
+    icon: 'user',
+    path: '/account',
+    routes: [
+      {
+        path: '/account',
+        redirect: '/account/settings',
+      },
+      {
+        name: 'settings',
+        icon: 'smile',
+        path: '/account/settings',
+        component: './account/settings',
+      },
+    ],
   },
   {
     path: '/',
