@@ -7,6 +7,10 @@ import routes from './routes';
 
 const { REACT_APP_ENV = 'dev' } = process.env;
 
+console.log('--------9--------',REACT_APP_ENV);
+// console.log(process,'--------10--------');
+
+console.log('--------13--------',proxy[REACT_APP_ENV as keyof typeof proxy]);
 export default defineConfig({
   /**
    * @name 开启 hash 模式

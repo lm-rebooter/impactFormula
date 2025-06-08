@@ -1,6 +1,18 @@
 // @ts-ignore
 /* eslint-disable */
+
 import { request } from '@umijs/max';
+
+// // 助手配置-小程序卡片列表
+// export const appletCardTemplate = (params) => {
+//   const rs = request('/new-media-manager-api/applet-card-template/ai-settings/list', {
+//     params,
+//   });
+
+//   return rs;
+// };
+
+
 
 /** 获取当前的用户 GET /api/currentUser */
 export async function currentUser(options?: { [key: string]: any }) {
