@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button, Card, Form, Input, Spin, Statistic, Space, Empty } from 'antd';
+import { Button, Card, Form, Input, Spin, Statistic, Space, Empty,Modal } from 'antd';
 import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
 
 import {
@@ -28,6 +28,8 @@ const ImpactFormula: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showPDF, setShowPDF] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string>('');
+  const [showCalculationModal, setShowCalculationModal] = useState(false);
+  
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -83,11 +85,59 @@ const ImpactFormula: React.FC = () => {
           <Button htmlType="reset" style={{ marginRight: 8 }}>
             Reset
           </Button>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
             Query
+          </Button>
+          <Button
+            type="primary"
+            tabIndex={0}
+            aria-label="View Calculation Method"
+            onClick={() => setShowCalculationModal(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                setShowCalculationModal(true);
+              }
+            }}
+          >
+            View Calculation Method
           </Button>
         </Form.Item>
       </Form>
+
+      <Modal
+        open={showCalculationModal}
+        onCancel={() => setShowCalculationModal(false)}
+        footer={null}
+        width={800}
+        bodyStyle={{ padding: 0 }}
+        title="How We Calculated It"
+        destroyOnClose
+      >
+        <div
+          style={{
+            width: '100%',
+            // height: '80vh',
+            minHeight: 550,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#f5f5f5',
+          }}
+        >
+          <iframe
+            src="/How We Calculated It.pdf"
+            title="How We Calculated It PDF"
+            width="100%"
+            height="550px"
+            style={{
+              border: 0,
+              borderRadius: 12,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            }}
+          />
+        </div>
+      </Modal>
+
 
       <ProCard
         gutter={[{ xs: 8, sm: 8, md: 16, lg: 24, xl: 32 }, 16]}
