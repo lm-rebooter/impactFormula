@@ -14,7 +14,7 @@ import {
   ProCard,
   ProFormDatePicker,
 } from '@ant-design/pro-components';
-import { Button, message, Form, DatePicker, Space } from 'antd';
+import { Button, message, Form, DatePicker, Space, Select } from 'antd';
 import React, { useRef, useState } from 'react';
 import scaleIcon from './assets/scale.svg';
 import leafsIcon from './assets/leafs.svg';
@@ -23,8 +23,15 @@ import waterIcon from './assets/water.svg';
 import treeIcon from './assets/tree.svg';
 import electricityIcon from './assets/electricity.svg';
 import gasIcon from './assets/gas.svg';
+import UploadModal from './Components/UploadModal';
+import styles from './index.module.less';
 
 const { RangePicker } = DatePicker;
+
+const filterOptions = [
+  { label: 'Monthly', value: 'monthly' },
+  { label: 'Period', value: 'period' },
+];
 
 const TableList: React.FC = () => {
   const actionRef = useRef<ActionType>();
@@ -43,15 +50,15 @@ const TableList: React.FC = () => {
       areas.add(`Area ${i + 1}`);
     }
     return {
-      sites: Array.from(sites).map(site => ({ label: site, value: site })),
-      areas: Array.from(areas).map(area => ({ label: area, value: area }))
+      sites: Array.from(sites).map((site) => ({ label: site, value: site })),
+      areas: Array.from(areas).map((area) => ({ label: area, value: area })),
     };
   }, []);
 
   // 动态columns
   const [currentType, setCurrentType] = useState('period');
   const isMonthly = currentType === 'monthly';
-  console.log(isMonthly,'isMonthly???')
+  console.log(isMonthly, 'isMonthly???');
 
   const columnsWeekly: ProColumns[] = [
     { title: 'Date', dataIndex: 'date', valueType: 'date', sorter: true },
@@ -59,7 +66,12 @@ const TableList: React.FC = () => {
     { title: 'Site', dataIndex: 'site', valueType: 'text', sorter: true },
     { title: 'Weight', dataIndex: 'weight', valueType: 'digit', sorter: true },
     { title: 'Requests', dataIndex: 'requests', valueType: 'digit', sorter: true },
-    { title: 'Fulfilled Requests', dataIndex: 'fulfilledRequests', valueType: 'digit', sorter: true },
+    {
+      title: 'Fulfilled Requests',
+      dataIndex: 'fulfilledRequests',
+      valueType: 'digit',
+      sorter: true,
+    },
     { title: 'Title', dataIndex: 'title', valueType: 'text', sorter: true },
     { title: 'Area', dataIndex: 'area', valueType: 'text', sorter: true },
     { title: 'No. of Links', dataIndex: 'links', valueType: 'digit', sorter: true },
@@ -73,8 +85,18 @@ const TableList: React.FC = () => {
     { title: 'Food Saved', dataIndex: 'foodSaved', valueType: 'text', sorter: true },
     { title: 'CO2 Saved', dataIndex: 'co2Saved', valueType: 'text', sorter: true },
     { title: 'Requests', dataIndex: 'requests', valueType: 'digit', sorter: true },
-    { title: 'Fulfilled Requests', dataIndex: 'fulfilledRequests', valueType: 'text', sorter: true },
-    { title: 'Families Benefitted', dataIndex: 'familiesBenefitted', valueType: 'text', sorter: true },
+    {
+      title: 'Fulfilled Requests',
+      dataIndex: 'fulfilledRequests',
+      valueType: 'text',
+      sorter: true,
+    },
+    {
+      title: 'Families Benefitted',
+      dataIndex: 'familiesBenefitted',
+      valueType: 'text',
+      sorter: true,
+    },
     { title: 'No. of Links', dataIndex: 'links', valueType: 'digit', sorter: true },
     { title: 'Saved ($)', dataIndex: 'saved', valueType: 'digit', sorter: true },
     {
@@ -86,7 +108,9 @@ const TableList: React.FC = () => {
           aria-label="Download Report"
           tabIndex={0}
           onClick={() => handleDownload(record)}
-          onKeyDown={e => { if (e.key === 'Enter') handleDownload(record); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleDownload(record);
+          }}
         >
           Download
         </Button>
@@ -112,107 +136,127 @@ const TableList: React.FC = () => {
     message.info('EXPORT BY DAY AND SITE');
   };
 
+  const handleQuery = (values: any) => {
+    console.log(form.getFieldsValue(), 'form???');
+    console.log(values, 'values???');
+    const values1 = form.getFieldsValue();
+    rule(values1).then((res: any) => {
+      console.log(res, 'res???');
+    });
+  };
+  const handleReset = () => {
+    form.resetFields();
+    console.log('reset???');
+  };
+
   return (
     <PageContainer>
-      <ProForm
+      <Form
         form={form}
-        layout="horizontal"
-        grid
-        rowProps={{ gutter: [24, 16] }}
+        layout="inline"
+        className={styles.filterForm}
         initialValues={{ type: 'period' }}
-        onFinish={values => {
-          setFilterParams(values);
-        }}
-        onReset={() => {
-          setFilterParams({});
-        }}
-        onValuesChange={(changed, all) => {
-          if ('type' in changed) setCurrentType(changed.type);
-        }}
-        submitter={{
-          render: (props, doms) => (
-            <Space size={16} style={{ margin: '8px 0' }}>
-              {doms[0]}
-              {doms[1]}
-              {currentType === 'period' && <>
-                <Button onClick={handleExport} key="export">EXPORT</Button>
-                <Button onClick={handleExportByDaySite} key="exportByDaySite">EXPORT BY DAY AND SITE</Button>
-              </>}
-            </Space>
-          ),
-        }}
+        onFinish={handleQuery}
+        onReset={handleReset}
       >
-        <ProFormSelect
-          name="type"
-          label="Type"
-          initialValue="period"
-          rules={[{ required: true, message: 'Please select type' }]}
-          options={[
-            { label: 'Period', value: 'period' },
-            { label: 'Monthly', value: 'monthly' },
-          ]}
-          colProps={{ span: 6 }}
-          fieldProps={{
-            allowClear: false,
-            onChange: (val: string) => {
+        <Form.Item label="Type" name="type">
+          <Select
+            allowClear
+            showSearch
+            placeholder="Select type"
+            onChange={(val: string) => {
+              console.log(val, 'val???');
+              setCurrentType(val);
               if (val !== 'monthly') {
-                form.setFieldsValue({ startTime: undefined, endTime: undefined, monthRange: undefined });
+                form.setFieldsValue({
+                  startTime: undefined,
+                  endTime: undefined,
+                  monthRange: undefined,
+                });
               }
-            },
-          }}
-        />
-        <Form.Item shouldUpdate={(prev, curr) => prev.type !== curr.type} style={{ marginBottom: 0 }}>
-          {() =>
-            form.getFieldValue('type') === 'period' && (
-              <Form.Item
-                label="Range"
-                name="monthRange"
-                rules={[{ required: true, message: 'Please select month range' }]}
-              >
-                <RangePicker
-                  picker="month"
-                  style={{ width: 320 }}
-                  placeholder={['Start Month', 'End Month']}
-                  allowClear={false}
-                  onChange={(_dates: any, dateStrings: [string, string]) => {
-                    form.setFieldsValue({
-                      startTime: dateStrings[0],
-                      endTime: dateStrings[1],
-                    });
-                  }}
-                />
-              </Form.Item>
-            )
-          }
+            }}
+            options={filterOptions}
+            style={{ minWidth: 300, flex: 1 }}
+          />
         </Form.Item>
-        <ProFormSelect
-          name="site"
-          label="Site"
-          placeholder="Please select site"
-          colProps={{ span: 6 }}
-          options={siteOptions.sites}
-          fieldProps={{
-            allowClear: true,
-          }}
-        />
-        <Form.Item shouldUpdate={(prev, curr) => prev.type !== curr.type} style={{ marginBottom: 0 }}>
-          {() =>
-            form.getFieldValue('type') !== 'monthly' && (
-              <ProFormSelect
-                name="area"
-                label="Area"
-                placeholder="Please select area"
-                colProps={{ span: 6 }}
-                options={siteOptions.areas}
-                fieldProps={{
-                  allowClear: true,
-                  style: { width: 200 },
-                }}
-              />
-            )
-          }
+
+        {form.getFieldValue('type') === 'period' && (
+          <Form.Item
+            label="Range"
+            name="monthRange"
+            rules={[{ required: true, message: 'Please select month range' }]}
+          >
+            <RangePicker
+              picker="month"
+              style={{ width: 320 }}
+              placeholder={['Start Month', 'End Month']}
+              allowClear={false}
+              onChange={(_dates: any, dateStrings: [string, string]) => {
+                form.setFieldsValue({
+                  startTime: dateStrings[0],
+                  endTime: dateStrings[1],
+                });
+              }}
+            />
+          </Form.Item>
+        )}
+
+<Form.Item label="Site" name="site">
+          <Select
+            allowClear
+            showSearch
+            placeholder="Please select site"
+          
+            options={siteOptions.sites}
+            style={{ minWidth: 300, flex: 1 }}
+          />
         </Form.Item>
-      </ProForm>
+
+
+        {form.getFieldValue('type') === 'period' && (
+          <Form.Item
+            label="Area"
+            name="area"
+            rules={[{ required: true, message: 'Please select area' }]}
+          >
+           <Select
+            allowClear
+            showSearch
+            placeholder="Please select area"
+          
+            options={siteOptions.areas}
+            style={{ minWidth: 300, flex: 1 }}
+          />
+          </Form.Item>
+        )}
+   
+        <Form.Item>
+          <Button htmlType="reset" style={{ marginRight: 8 }}>
+            Reset
+          </Button>
+         
+          <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
+            Query
+          </Button>
+          {currentType === 'period' && (
+            <>
+              <Button onClick={handleExport} key="export" style={{ marginRight: 8 }}>
+                EXPORT
+              </Button>
+              <Button onClick={handleExportByDaySite} key="exportByDaySite" style={{ marginRight: 8 }}>
+                EXPORT BY DAY AND SITE
+              </Button>
+            </>
+          )}
+         
+          <UploadModal
+            onUpdate={() => {
+              // onSearch();
+            }}
+          />
+        </Form.Item>
+      </Form>
+
 
       <ProCard
         gutter={[{ xs: 8, sm: 8, md: 12, lg: 16, xl: 20 }, 12]}
@@ -249,9 +293,15 @@ const TableList: React.FC = () => {
           >
             <img src={scaleIcon} alt="Total Food Rescued Icon" style={{ width: 18, height: 18 }} />
           </span>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>Total Food Rescued</span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>18,973 KG</span>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
+          >
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+              Total Food Rescued
+            </span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+              18,973 KG
+            </span>
           </div>
         </ProCard>
 
@@ -285,12 +335,17 @@ const TableList: React.FC = () => {
           >
             <img src={leafsIcon} alt="CO2 Saved Icon" style={{ width: 18, height: 18 }} />
           </span>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>C02 Saved</span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>5,190 kg</span>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
+          >
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+              C02 Saved
+            </span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+              5,190 kg
+            </span>
           </div>
         </ProCard>
-        
 
         <ProCard
           bordered
@@ -322,9 +377,15 @@ const TableList: React.FC = () => {
           >
             <img src={waterIcon} alt="Water Saved Icon" style={{ width: 18, height: 18 }} />
           </span>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>Water Saved</span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>736,000 litres</span>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
+          >
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+              Water Saved
+            </span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+              736,000 litres
+            </span>
           </div>
         </ProCard>
         <ProCard
@@ -357,9 +418,15 @@ const TableList: React.FC = () => {
           >
             <img src={treeIcon} alt="Equiv Trees Planted Icon" style={{ width: 18, height: 18 }} />
           </span>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>Equiv Trees Planted</span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>108</span>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
+          >
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+              Equiv Trees Planted
+            </span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+              108
+            </span>
           </div>
         </ProCard>
       </ProCard>
@@ -399,9 +466,15 @@ const TableList: React.FC = () => {
           >
             <img src={carIcon} alt="Car KM Off The Road Icon" style={{ width: 18, height: 18 }} />
           </span>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>Car KM Off The Road</span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>24,143</span>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
+          >
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+              Car KM Off The Road
+            </span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+              24,143
+            </span>
           </div>
         </ProCard>
         <ProCard
@@ -432,11 +505,21 @@ const TableList: React.FC = () => {
               flexShrink: 0,
             }}
           >
-            <img src={electricityIcon} alt="Electricity Saved Icon" style={{ width: 18, height: 18 }} />
+            <img
+              src={electricityIcon}
+              alt="Electricity Saved Icon"
+              style={{ width: 18, height: 18 }}
+            />
           </span>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>Electricity Saved</span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>6,499 kWh</span>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
+          >
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+              Electricity Saved
+            </span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+              6,499 kWh
+            </span>
           </div>
         </ProCard>
         <ProCard
@@ -469,9 +552,15 @@ const TableList: React.FC = () => {
           >
             <img src={gasIcon} alt="Natural Gas Saved Icon" style={{ width: 18, height: 18 }} />
           </span>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>Natural Gas Saved</span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>967 litres</span>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
+          >
+            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+              Natural Gas Saved
+            </span>
+            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+              967 litres
+            </span>
           </div>
         </ProCard>
       </ProCard>

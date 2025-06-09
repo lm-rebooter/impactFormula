@@ -2,7 +2,7 @@
 import { defineConfig } from '@umijs/max';
 import { join } from 'path';
 import defaultSettings from './defaultSettings';
-import proxy from './proxy';
+// import proxy from './proxy';
 import routes from './routes';
 
 const { REACT_APP_ENV = 'dev' } = process.env;
@@ -10,7 +10,7 @@ const { REACT_APP_ENV = 'dev' } = process.env;
 console.log('--------9--------',REACT_APP_ENV);
 // console.log(process,'--------10--------');
 
-console.log('--------13--------',proxy[REACT_APP_ENV as keyof typeof proxy]);
+// console.log('--------13--------',proxy[REACT_APP_ENV as keyof typeof proxy]);
 export default defineConfig({
   /**
    * @name 开启 hash 模式
@@ -58,7 +58,17 @@ export default defineConfig({
    * @doc 代理介绍 https://umijs.org/docs/guides/proxy
    * @doc 代理配置 https://umijs.org/docs/api/config#proxy
    */
-  proxy: proxy[REACT_APP_ENV as keyof typeof proxy],
+  // proxy: proxy[REACT_APP_ENV as keyof typeof proxy],
+  proxy: {
+    '/api': {
+      // 要代理的地址
+      target: 'http://api-test.taocheche.com/',
+      // 配置了这个可以从 http 代理到 https
+      // 依赖 origin 的功能可能需要这个，比如 cookie
+      changeOrigin: true,
+     'pathRewrite': { '^/api' : '' },
+    },
+  },
   /**
    * @name 快速热更新配置
    * @description 一个不错的热更新组件，更新时可以保留 state

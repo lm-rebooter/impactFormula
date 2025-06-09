@@ -2,6 +2,7 @@
 /* eslint-disable */
 
 import { request } from '@umijs/max';
+import HOST from '../../../config/hosts';
 
 // // 助手配置-小程序卡片列表
 // export const appletCardTemplate = (params) => {
@@ -104,3 +105,6 @@ export async function removeRule(options?: { [key: string]: any }) {
     }
   });
 }
+
+export const uploadFileWuliuExcel = `${HOST['/base']}/scm/tms/transportWork/importExcel`;
+

@@ -8,11 +8,10 @@ import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
 import React from 'react';
-const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
 
 
-console.log(process.env,'isDev15', isDev);
+console.log(process.env);
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
  * */
@@ -91,11 +90,11 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
         width: '331px',
       },
     ],
-    links: isDev
-      ? [
+    links: 
+      [
           <span key="footer-text" style={{fontSize:'12px'}}>© 2025 by D2L.sg x GoodHood.SG</span>
         ]
-      : [],
+      ,
     menuHeaderRender: undefined,
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,
