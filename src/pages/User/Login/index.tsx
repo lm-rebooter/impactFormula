@@ -6,6 +6,7 @@ import { history, useIntl, useModel } from '@umijs/max';
 import { message, Tabs } from 'antd';
 import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
+import Cookies from 'js-cookie';
 import './index.less';
 
 const LogoRow = () => (
@@ -25,6 +26,7 @@ const Login: React.FC = () => {
 
   const fetchUserInfo = async () => {
     const userInfo = await initialState?.fetchUserInfo?.();
+    console.log(userInfo, 'userInfo');
     if (userInfo) {
       flushSync(() => {
         setInitialState((s) => ({
@@ -37,8 +39,8 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (values: API.LoginParams) => {
     try {
-      const msg = await login({ ...values, type: 'account' });
-      if (msg.status === 'ok') {
+      const msg = await login({ ...values });
+      if (msg.code === 200) {
         const defaultLoginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
           defaultMessage: 'Login successful!',
@@ -48,6 +50,8 @@ const Login: React.FC = () => {
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
         return;
+      } else {
+        message.error(msg.message);
       }
     } catch (error) {
       const defaultLoginFailureMessage = intl.formatMessage({
@@ -71,17 +75,12 @@ const Login: React.FC = () => {
     };
     try {
       const msg = await register({ ...params });
-      console.log(msg, 'msgmsg');
-      if (msg.status === 'ok') {
-        const defaultLoginSuccessMessage = intl.formatMessage({
-          id: 'pages.register.success',
-          defaultMessage: 'Register successful!',
-        });
-        message.success(defaultLoginSuccessMessage);
-        await fetchUserInfo();
-        const urlParams = new URL(window.location.href).searchParams;
-        history.push(urlParams.get('redirect') || '/');
-        return;
+      if (msg.code === 200) {
+        Cookies.set('token', `${msg.data.token}`);
+        message.success('Registration successful, please login!');
+        setType('login');
+      } else {
+        message.error(msg.message);
       }
     } catch (error) {
       const defaultLoginFailureMessage = intl.formatMessage({
@@ -90,11 +89,6 @@ const Login: React.FC = () => {
       });
       message.error(defaultLoginFailureMessage);
     }
-
-    message.success('Registration successful, please login!');
-    setType('login');
-
-    // login
   };
 
   return (
@@ -144,18 +138,18 @@ const Login: React.FC = () => {
             {type === 'login' && (
               <>
                 <ProFormText
-                  name="name"
+                  name="email"
                   fieldProps={{
                     size: 'large',
                     prefix: <UserOutlined />,
                     tabIndex: 0,
-                    'aria-label': 'name',
+                    'aria-label': 'Email',
                   }}
-                  placeholder={intl.formatMessage({
-                    id: 'pages.login.name.placeholder',
-                    defaultMessage: 'name: admin or user',
-                  })}
-                  rules={[{ required: true, message: 'Please input your name!' }]}
+                  placeholder="Email"
+                  rules={[
+                    { required: true, message: 'Please input your email!' },
+                    { type: 'email', message: 'Invalid email format!' },
+                  ]}
                 />
                 <ProFormText.Password
                   name="password"
@@ -165,10 +159,7 @@ const Login: React.FC = () => {
                     tabIndex: 0,
                     'aria-label': 'Password',
                   }}
-                  placeholder={intl.formatMessage({
-                    id: 'pages.login.password.placeholder',
-                    defaultMessage: 'Password: ant.design',
-                  })}
+                  placeholder="Password"
                   rules={[{ required: true, message: 'Please input your password!' }]}
                 />
                 <div className="login-switch-row">

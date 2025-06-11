@@ -1,7 +1,7 @@
 ﻿import type { RequestOptions } from '@@/plugin-request/request';
 import type { RequestConfig } from '@umijs/max';
 import { message, notification } from 'antd';
-import cookie from 'js-cookie';
+import Cookies from 'js-cookie';
 // 错误处理方案： 错误类型
 enum ErrorShowType {
   SILENT = 0,
@@ -89,11 +89,11 @@ export const errorConfig: RequestConfig = {
   requestInterceptors: [
     (config: RequestOptions) => {
       // 拦截请求配置，进行个性化处理。
-      const token = cookie.get('token');
+      const token = Cookies.get('token');
       if (token) {
         config.headers = {
           ...config.headers,
-          Authorization: token,
+          Authorization: `Bearer ${Cookies.get('token')}`,
         };
       }
       let url = config?.url;

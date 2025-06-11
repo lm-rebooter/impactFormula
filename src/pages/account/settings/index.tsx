@@ -1,13 +1,26 @@
 import React from 'react';
-import { Form, Input, Button, Card } from 'antd';
+import { Form, Input, Button, Card, message } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
+import { useModel } from '@umijs/max';
+import { changePassword } from '@/services/ant-design-pro/api';
+
 const ChangePassword: React.FC = () => {
   const [form] = Form.useForm();
+  const { initialState } = useModel('@@initialState');
 
   const handleFinish = (values: any) => {
-    // handle password change logic here
-    // e.g. call API
-    console.log('Form values:', values);
+    const params = {
+      email: values.email,
+      oldPassword: values.oldPassword,
+      newPassword: values.newPassword,
+    };
+    changePassword({ ...params }).then((res: any) => {
+      if (res.code === 200) {
+        message.success('Modified successfully');
+      } else {
+        message.error(res.message);
+      }
+    });
   };
 
   return (
@@ -15,48 +28,40 @@ const ChangePassword: React.FC = () => {
       <Card title="Change Password" bordered={false}>
         <Form form={form} layout="vertical" onFinish={handleFinish}>
           <Form.Item
-            label="na me"
+            label="name"
             name="name"
+            initialValue={initialState?.currentUser?.name}
             rules={[{ required: true, message: 'Please input your name!' }]}
           >
-            <Input placeholder="Enter your name" />
+            <Input placeholder="Enter your name" disabled />
           </Form.Item>
           <Form.Item
             label="Email"
             name="email"
+            initialValue={initialState?.currentUser?.email}
             rules={[
               { required: true, message: 'Please input your email!' },
               { type: 'email', message: 'Invalid email format!' },
             ]}
           >
-            <Input placeholder="Enter your email" />
+            <Input placeholder="Enter your email" disabled />
           </Form.Item>
           <Form.Item
-            label="New Password"
-            name="newPassword"
-            rules={[{ required: true, message: 'Please input your new password!' }]}
+            label="oldPassword"
+            name="oldPassword"
+            rules={[{ required: true, message: 'Please input your oldPassword' }]}
             hasFeedback
           >
-            <Input.Password placeholder="Enter new password" />
+            <Input.Password placeholder="Enter oldPassword" />
           </Form.Item>
           <Form.Item
-            label="Confirm Password"
-            name="confirmPassword"
+            label="newPassword"
+            name="newPassword"
             dependencies={['newPassword']}
             hasFeedback
-            rules={[
-              { required: true, message: 'Please confirm your password!' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('newPassword') === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error('Passwords do not match!'));
-                },
-              }),
-            ]}
+            rules={[{ required: true, message: 'Please input your newPassword!' }]}
           >
-            <Input.Password placeholder="Confirm password" />
+            <Input.Password placeholder="Please input your newPassword!" />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" block>

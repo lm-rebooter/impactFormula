@@ -7,7 +7,7 @@ import routes from './routes';
 
 const { REACT_APP_ENV = 'dev' } = process.env;
 
-console.log('--------9--------',REACT_APP_ENV);
+console.log('--------9--------', REACT_APP_ENV);
 // console.log(process,'--------10--------');
 
 // console.log('--------13--------',proxy[REACT_APP_ENV as keyof typeof proxy]);
@@ -66,7 +66,7 @@ export default defineConfig({
       // 配置了这个可以从 http 代理到 https
       // 依赖 origin 的功能可能需要这个，比如 cookie
       changeOrigin: true,
-     'pathRewrite': { '^/api' : '' },
+      pathRewrite: { '^/api': '' },
     },
   },
   /**
@@ -110,7 +110,7 @@ export default defineConfig({
    */
   locale: {
     // default zh-CN
-    default: 'zh-CN',
+    default: 'en-US',
     antd: true,
     // default true, when it is true, will use `navigator.language` overwrite default
     baseNavigator: true,
