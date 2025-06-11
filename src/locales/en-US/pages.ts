@@ -1,12 +1,11 @@
 export default {
-  'pages.layouts.userLayout.title':
-    'Enabling businesses to divert surplus for good.',
+  'pages.layouts.userLayout.title': 'Enabling businesses to divert surplus for good.',
   'pages.login.accountLogin.tab': 'Account Login',
-  'pages.login.accountLogin.errorMessage': 'Incorrect username/password(admin/ant.design)',
+  'pages.login.accountLogin.errorMessage': 'Incorrect name/password(admin/ant.design)',
   'pages.login.failure': 'Login failed, please try again!',
   'pages.login.success': 'Login successful!',
-  'pages.login.username.placeholder': 'Username: admin or user',
-  'pages.login.username.required': 'Please input your username!',
+  'pages.login.name.placeholder': 'name: admin or user',
+  'pages.login.name.required': 'Please input your name!',
   'pages.login.password.placeholder': 'Password: ant.design',
   'pages.login.password.required': 'Please input your password!',
   'pages.login.phoneLogin.tab': 'Phone Login',

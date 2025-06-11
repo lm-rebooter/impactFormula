@@ -1,31 +1,25 @@
 import React from 'react';
 import { Form, Input, Button, Card } from 'antd';
-import {
-  PageContainer,
-} from '@ant-design/pro-components';
+import { PageContainer } from '@ant-design/pro-components';
 const ChangePassword: React.FC = () => {
   const [form] = Form.useForm();
 
   const handleFinish = (values: any) => {
     // handle password change logic here
     // e.g. call API
-    // console.log('Form values:', values);
+    console.log('Form values:', values);
   };
 
   return (
     <PageContainer>
       <Card title="Change Password" bordered={false}>
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleFinish}
-        >
+        <Form form={form} layout="vertical" onFinish={handleFinish}>
           <Form.Item
-            label="Username"
-            name="username"
-            rules={[{ required: true, message: 'Please input your username!' }]}
+            label="na me"
+            name="name"
+            rules={[{ required: true, message: 'Please input your name!' }]}
           >
-            <Input placeholder="Enter your username" />
+            <Input placeholder="Enter your name" />
           </Form.Item>
           <Form.Item
             label="Email"
@@ -48,7 +42,7 @@ const ChangePassword: React.FC = () => {
           <Form.Item
             label="Confirm Password"
             name="confirmPassword"
-            dependencies={["newPassword"]}
+            dependencies={['newPassword']}
             hasFeedback
             rules={[
               { required: true, message: 'Please confirm your password!' },
@@ -71,7 +65,7 @@ const ChangePassword: React.FC = () => {
           </Form.Item>
         </Form>
       </Card>
-     </PageContainer>
+    </PageContainer>
   );
 };
 

@@ -492,7 +492,7 @@
       "LoginParams": {
         "type": "object",
         "properties": {
-          "username": {
+          "name": {
             "type": "string"
           },
           "password": {
