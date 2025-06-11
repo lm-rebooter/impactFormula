@@ -1,21 +1,8 @@
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
-import { PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
-import {
-  FooterToolbar,
-  ModalForm,
-  PageContainer,
-  ProDescriptions,
-  ProFormText,
-  ProFormTextArea,
-  ProTable,
-  ProForm,
-  ProFormSelect,
-  ProCard,
-  ProFormDatePicker,
-} from '@ant-design/pro-components';
-import { Button, message, Form, DatePicker, Space, Select } from 'antd';
-import React, { useRef, useState } from 'react';
+import { getRescues, countRescues, getTotalWeight } from '@/services/ant-design-pro/api';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
+import { Button, message, Form, DatePicker, Select } from 'antd';
+import React, { useRef, useState, useEffect } from 'react';
 import scaleIcon from './assets/scale.svg';
 import leafsIcon from './assets/leafs.svg';
 import carIcon from './assets/car.svg';
@@ -24,6 +11,7 @@ import treeIcon from './assets/tree.svg';
 import electricityIcon from './assets/electricity.svg';
 import gasIcon from './assets/gas.svg';
 import UploadModal from './Components/UploadModal';
+
 import styles from './index.module.less';
 
 const { RangePicker } = DatePicker;
@@ -36,9 +24,26 @@ const filterOptions = [
 const TableList: React.FC = () => {
   const actionRef = useRef<ActionType>();
 
-  const [type, setType] = useState<string>();
-  const [filterParams, setFilterParams] = useState<any>({});
+  const [totalRescues, setTotalRescues] = useState<number>(0);
+  const [totalWeight, setTotalWeight] = useState<number>(0);
   const [form] = Form.useForm();
+  const [queryParams, setQueryParams] = useState<any>({});
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [rescuesCount, weightTotal] = await Promise.all([
+          countRescues({}),
+          getTotalWeight({}),
+        ]);
+        setTotalRescues(rescuesCount.total || 0);
+        setTotalWeight(weightTotal.total || 0);
+      } catch (error) {
+        console.error('Failed to fetch initial data:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   // 获取所有可用的 Site 和 Area 选项
   const siteOptions = React.useMemo(() => {
@@ -60,45 +65,45 @@ const TableList: React.FC = () => {
   const isMonthly = currentType === 'monthly';
   console.log(isMonthly, 'isMonthly???');
 
+  const handleDownload = (record: any) => {
+    // Replace with actual download logic
+    // For example: window.open(`/api/download?id=${record.key}`)
+    message.success(`Downloaded report: ${record.title || record.key}`);
+  };
+
   const columnsWeekly: ProColumns[] = [
-    { title: 'Date', dataIndex: 'date', valueType: 'date', sorter: true },
-    { title: 'Month', dataIndex: 'month', valueType: 'text', sorter: true },
-    { title: 'Site', dataIndex: 'site', valueType: 'text', sorter: true },
-    { title: 'Weight', dataIndex: 'weight', valueType: 'digit', sorter: true },
-    { title: 'Requests', dataIndex: 'requests', valueType: 'digit', sorter: true },
+    { title: 'Date', dataIndex: 'date', valueType: 'date' },
+    { title: 'Month', dataIndex: 'month', valueType: 'text' },
+    { title: 'Site', dataIndex: 'site', valueType: 'text' },
+    { title: 'Weight', dataIndex: 'weight', valueType: 'digit' },
+    { title: 'Requests', dataIndex: 'requests', valueType: 'digit' },
     {
       title: 'Fulfilled Requests',
       dataIndex: 'fulfilledRequests',
       valueType: 'digit',
-      sorter: true,
     },
-    { title: 'Title', dataIndex: 'title', valueType: 'text', sorter: true },
-    { title: 'Area', dataIndex: 'area', valueType: 'text', sorter: true },
-    { title: 'No. of Links', dataIndex: 'links', valueType: 'digit', sorter: true },
-    { title: 'Impressions', dataIndex: 'impressions', valueType: 'digit', sorter: true },
-    { title: 'Saved ($)', dataIndex: 'saved', valueType: 'digit', sorter: true },
+    { title: 'Title', dataIndex: 'title', valueType: 'text' },
+    { title: 'Area', dataIndex: 'area', valueType: 'text' },
+    { title: 'No. of Links', dataIndex: 'links', valueType: 'digit' },
+    { title: 'Impressions', dataIndex: 'impressions', valueType: 'digit' },
+    { title: 'Saved ($)', dataIndex: 'saved', valueType: 'digit' },
   ];
 
   const columnsMonthly: ProColumns[] = [
-    { title: 'Month', dataIndex: 'month', valueType: 'text', sorter: true },
-    { title: 'Site', dataIndex: 'site', valueType: 'text', sorter: true },
-    { title: 'Food Saved', dataIndex: 'foodSaved', valueType: 'text', sorter: true },
-    { title: 'CO2 Saved', dataIndex: 'co2Saved', valueType: 'text', sorter: true },
-    { title: 'Requests', dataIndex: 'requests', valueType: 'digit', sorter: true },
+    { title: 'Month', dataIndex: 'month', valueType: 'text' },
+    { title: 'Site', dataIndex: 'site', valueType: 'text' },
+    { title: 'Food Saved', dataIndex: 'foodSaved', valueType: 'text' },
+    { title: 'CO2 Saved', dataIndex: 'co2Saved', valueType: 'text' },
+    { title: 'Requests', dataIndex: 'requests', valueType: 'digit' },
     {
       title: 'Fulfilled Requests',
       dataIndex: 'fulfilledRequests',
       valueType: 'text',
       sorter: true,
     },
-    {
-      title: 'Families Benefitted',
-      dataIndex: 'familiesBenefitted',
-      valueType: 'text',
-      sorter: true,
-    },
-    { title: 'No. of Links', dataIndex: 'links', valueType: 'digit', sorter: true },
-    { title: 'Saved ($)', dataIndex: 'saved', valueType: 'digit', sorter: true },
+    { title: 'Families Benefitted', dataIndex: 'familiesBenefitted', valueType: 'text' },
+    { title: 'No. of Links', dataIndex: 'links', valueType: 'digit' },
+    { title: 'Saved ($)', dataIndex: 'saved', valueType: 'digit' },
     {
       title: 'Download Report',
       dataIndex: 'download',
@@ -120,12 +125,6 @@ const TableList: React.FC = () => {
 
   const columns = currentType === 'monthly' ? columnsMonthly : columnsWeekly;
 
-  const handleDownload = (record: any) => {
-    // Replace with actual download logic
-    // For example: window.open(`/api/download?id=${record.key}`)
-    message.success(`Downloaded report: ${record.title || record.key}`);
-  };
-
   const handleExport = () => {
     // TODO: Implement period export logic
     message.info('EXPORT');
@@ -139,10 +138,31 @@ const TableList: React.FC = () => {
   const handleQuery = (values: any) => {
     console.log(form.getFieldsValue(), 'form???');
     console.log(values, 'values???');
-    const values1 = form.getFieldsValue();
-    rule(values1).then((res: any) => {
-      console.log(res, 'res???');
-    });
+
+    const params = {
+      ...values,
+      startDate: values.monthRange ? values.monthRange[0].format('YYYY-MM') : undefined,
+      endDate: values.monthRange ? values.monthRange[1].format('YYYY-MM') : undefined,
+    };
+    delete params.monthRange;
+    console.log(params, 'params???');
+    setQueryParams(params);
+
+    actionRef.current?.reload();
+    // 同时调用 countRescues 和 getTotalWeight 并更新状态
+    const fetchData = async () => {
+      try {
+        const [rescuesCount, weightTotal] = await Promise.all([
+          countRescues({}),
+          getTotalWeight({}),
+        ]);
+        setTotalRescues(rescuesCount.total || 0);
+        setTotalWeight(weightTotal.total || 0);
+      } catch (error) {
+        console.error('Failed to fetch data on query:', error);
+      }
+    };
+    fetchData();
   };
   const handleReset = () => {
     form.resetFields();
@@ -169,8 +189,8 @@ const TableList: React.FC = () => {
               setCurrentType(val);
               if (val !== 'monthly') {
                 form.setFieldsValue({
-                  startTime: undefined,
-                  endTime: undefined,
+                  startDate: undefined,
+                  endDate: undefined,
                   monthRange: undefined,
                 });
               }
@@ -192,26 +212,25 @@ const TableList: React.FC = () => {
               placeholder={['Start Month', 'End Month']}
               allowClear={false}
               onChange={(_dates: any, dateStrings: [string, string]) => {
+                console.log(_dates, '_dates', dateStrings, 'dateStrings???');
                 form.setFieldsValue({
-                  startTime: dateStrings[0],
-                  endTime: dateStrings[1],
+                  startDate: dateStrings[0],
+                  endDate: dateStrings[1],
                 });
               }}
             />
           </Form.Item>
         )}
 
-<Form.Item label="Site" name="site">
+        <Form.Item label="Site" name="site">
           <Select
             allowClear
             showSearch
             placeholder="Please select site"
-          
             options={siteOptions.sites}
             style={{ minWidth: 300, flex: 1 }}
           />
         </Form.Item>
-
 
         {form.getFieldValue('type') === 'period' && (
           <Form.Item
@@ -219,22 +238,21 @@ const TableList: React.FC = () => {
             name="area"
             rules={[{ required: true, message: 'Please select area' }]}
           >
-           <Select
-            allowClear
-            showSearch
-            placeholder="Please select area"
-          
-            options={siteOptions.areas}
-            style={{ minWidth: 300, flex: 1 }}
-          />
+            <Select
+              allowClear
+              showSearch
+              placeholder="Please select area"
+              options={siteOptions.areas}
+              style={{ minWidth: 300, flex: 1 }}
+            />
           </Form.Item>
         )}
-   
-        <Form.Item>
+
+        <Form.Item style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
           <Button htmlType="reset" style={{ marginRight: 8 }}>
             Reset
           </Button>
-         
+
           <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
             Query
           </Button>
@@ -243,20 +261,23 @@ const TableList: React.FC = () => {
               <Button onClick={handleExport} key="export" style={{ marginRight: 8 }}>
                 EXPORT
               </Button>
-              <Button onClick={handleExportByDaySite} key="exportByDaySite" style={{ marginRight: 8 }}>
+              <Button
+                onClick={handleExportByDaySite}
+                key="exportByDaySite"
+                style={{ marginRight: 8 }}
+              >
                 EXPORT BY DAY AND SITE
               </Button>
             </>
           )}
-         
           <UploadModal
             onUpdate={() => {
-              // onSearch();
+              // console.log("SAH那个穿")
+              // handleQuery;
             }}
           />
         </Form.Item>
       </Form>
-
 
       <ProCard
         gutter={[{ xs: 8, sm: 8, md: 12, lg: 16, xl: 20 }, 12]}
@@ -300,7 +321,7 @@ const TableList: React.FC = () => {
               Total Food Rescued
             </span>
             <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
-              18,973 KG
+              {totalWeight} KG
             </span>
           </div>
         </ProCard>
@@ -333,16 +354,16 @@ const TableList: React.FC = () => {
               flexShrink: 0,
             }}
           >
-            <img src={leafsIcon} alt="CO2 Saved Icon" style={{ width: 18, height: 18 }} />
+            <img src={leafsIcon} alt="Total Rescues Icon" style={{ width: 18, height: 18 }} />
           </span>
           <div
             style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
           >
             <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
-              C02 Saved
+              Total Rescues
             </span>
             <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
-              5,190 kg
+              {totalRescues}
             </span>
           </div>
         </ProCard>
@@ -571,9 +592,24 @@ const TableList: React.FC = () => {
         search={false}
         options={false}
         toolBarRender={false}
-        params={filterParams}
-        request={async (params, sorter, filter) => {
-          return rule(params);
+        params={queryParams}
+        request={async (params) => {
+          const res = await getRescues(params);
+          console.log(res, 'resres');
+          // 根据 API.RuleList 的结构调整返回
+          if (res.code === 200 && res.data.content) {
+            return {
+              data: res.data.content,
+              success: true, // 假设只要有数据就成功
+              total: res.data.totalElements, // ProTable 需要 total 字段用于分页
+            };
+          } else {
+            return {
+              data: [],
+              success: true,
+              total: 0,
+            };
+          }
         }}
         columns={columns}
       />

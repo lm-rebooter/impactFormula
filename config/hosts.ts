@@ -1,14 +1,14 @@
 const { REACT_APP_ENV } = process.env;
 const development = {
-  '/base': 'http://localhost:8000/bg',
+  '/base': 'http://1.15.25.13:8080',
 };
 
 const test = {
-  '/base': 'https://api-test.taocheche.com/bg',
+  '/base': 'http://1.15.25.13:8080',
 };
 
 const pre = {
-  '/base': 'https://api.taocheche.com/bg',
+  '/base': 'http://1.15.25.13:8080',
 };
 
 export const hostsObj = {

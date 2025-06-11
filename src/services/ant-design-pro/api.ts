@@ -4,20 +4,35 @@
 import { request } from '@umijs/max';
 import HOST from '../../../config/hosts';
 
-// // 助手配置-小程序卡片列表
-// export const appletCardTemplate = (params) => {
-//   const rs = request('/new-media-manager-api/applet-card-template/ai-settings/list', {
-//     params,
-//   });
+// 注册接口
+export async function register(body: API.LoginParams, options?: { [key: string]: any }) {
+  return request<API.LoginResult>('/api/account/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
 
-//   return rs;
-// };
+/** 登录接口 POST /api/login/account */
+export async function login(body: API.LoginParams, options?: { [key: string]: any }) {
+  return request<API.LoginResult>('/api/account/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
 
-/** 获取当前的用户 GET /api/currentUser */
+/** 获取当前的用户 GET /api/account/currentUser */
 export async function currentUser(options?: { [key: string]: any }) {
   return request<{
     data: API.CurrentUser;
-  }>('/api/currentUser', {
+  }>('/api/account/currentUser', {
     method: 'GET',
     ...(options || {}),
   });
@@ -31,9 +46,12 @@ export async function outLogin(options?: { [key: string]: any }) {
   });
 }
 
-/** 登录接口 POST /api/login/account */
-export async function login(body: API.LoginParams, options?: { [key: string]: any }) {
-  return request<API.LoginResult>('/api/login/account', {
+/** 修改密码 */
+export async function changePassword(
+  body: { email: any; oldPassword: any; newPassword: any },
+  options?: { [key: string]: any },
+) {
+  return request<Record<string, any>>('/api/account/changePassword', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -43,27 +61,8 @@ export async function login(body: API.LoginParams, options?: { [key: string]: an
   });
 }
 
-export async function register(body: API.LoginParams, options?: { [key: string]: any }) {
-  return request<API.LoginResult>('/api/account/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-/** 此处后端没有提供注释 GET /api/notices */
-export async function getNotices(options?: { [key: string]: any }) {
-  return request<API.NoticeIconList>('/api/notices', {
-    method: 'GET',
-    ...(options || {}),
-  });
-}
-
-/** 获取规则列表 GET /api/rule */
-export async function rule(
+/** 获取 Dashboard列表  */
+export async function getRescues(
   params: {
     // query
     /** 当前的页码 */
@@ -73,7 +72,48 @@ export async function rule(
   },
   options?: { [key: string]: any },
 ) {
-  return request<API.RuleList>('/api/rule', {
+  return request<API.RuleList>('/api/d2l/rescue', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+// 上传接口
+export const uploadFileWuliuExcel = `${HOST['/base']}/api/d2l/rescue/upload/csv`;
+
+//
+export async function countRescues(
+  params: {
+    // query
+    /** 当前的页码 */
+    current?: number;
+    /** 页面的容量 */
+    pageSize?: number;
+  },
+  options?: { [key: string]: any },
+) {
+  return request<API.RuleList>('/api/d2l/rescue/count', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+export async function getTotalWeight(
+  params: {
+    // query
+    /** 当前的页码 */
+    current?: number;
+    /** 页面的容量 */
+    pageSize?: number;
+  },
+  options?: { [key: string]: any },
+) {
+  return request<API.RuleList>('/api/d2l/rescue/totalWeight', {
     method: 'GET',
     params: {
       ...params,
@@ -114,5 +154,3 @@ export async function removeRule(options?: { [key: string]: any }) {
     },
   });
 }
-
-export const uploadFileWuliuExcel = `${HOST['/base']}/scm/tms/transportWork/importExcel`;
