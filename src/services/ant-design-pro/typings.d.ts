@@ -105,4 +105,40 @@ declare namespace API {
     description?: string;
     type?: NoticeIconItemType;
   };
+
+  // 通用 API 响应结构
+  type ApiResponse<T = any> = {
+    code: number;
+    success: boolean;
+    message?: string;
+    data: T;
+  };
+
+  // getRescues 接口返回的数据部分
+  type RescuePageData = {
+    page: {
+      content: RuleListItem[];
+      totalElements: number;
+      totalPages?: number;
+      size?: number;
+      number?: number;
+    };
+    totalFoodRescued?: number;
+    co2Saved?: number;
+    waterSaved?: number;
+    equivTreesPlanted?: number;
+    carKMOffTheRoad?: number;
+    electricitySaved?: number;
+    naturalGasSaved?: number;
+  };
+
+  // formula 接口返回的数据部分
+  type FormulaResultData = {
+    c02Saved?: number; // 保持现有代码中的拼写，但建议统一为 co2Saved
+    waterSaved?: number;
+    equivTreesPlanted?: number;
+    carKMOffTheRoad?: number;
+    electricitySaved?: number;
+    naturalGasSaved?: number;
+  };
 }

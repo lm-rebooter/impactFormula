@@ -64,38 +64,41 @@ export async function changePassword(
 /** 获取 Dashboard列表  */
 export async function getRescues(
   params: {
-    // query
-    /** 当前的页码 */
-    current?: number;
-    /** 页面的容量 */
+    page?: number;
     pageSize?: number;
-  },
+    [key: string]: any;
+  } = {},
   options?: { [key: string]: any },
 ) {
-  return request<API.RuleList>('/api/d2l/rescue', {
+  // 默认分页参数
+  const defaultParams = {
+    page: 1,
+    pageSize: 50,
+  };
+  return request<API.ApiResponse<API.RescuePageData>>('/api/d2l/rescue', {
     method: 'GET',
     params: {
+      ...defaultParams,
       ...params,
     },
     ...(options || {}),
   });
 }
+
 // 上传接口
 export const uploadFileWuliuExcel = `${HOST['/base']}/api/d2l/rescue/upload/csv`;
 
 // 获取site
 export async function getAllSites(options?: { [key: string]: any }) {
-  return request<{
-    data: API.AreaList;
-  }>('/api/d2l/rescue/sites', {
+  return request<API.ApiResponse<string[]>>('/api/d2l/rescue/sites', {
     method: 'GET',
     ...(options || {}),
   });
 }
 
 // 获取area
-export async function getAllAreas(params: {}, options?: { [key: string]: any }) {
-  return request<API.RuleList>('/api/d2l/rescue/areas', {
+export async function getAllAreas(params?: {}, options?: { [key: string]: any }) {
+  return request<API.ApiResponse<string[]>>('/api/d2l/rescue/areas', {
     method: 'GET',
     params: {
       ...params,
@@ -111,7 +114,7 @@ export async function formula(
   },
   options?: { [key: string]: any },
 ) {
-  return request<API.RuleList>('/api/d2l/formula', {
+  return request<API.ApiResponse<API.FormulaResultData>>('/api/d2l/formula', {
     method: 'GET',
     params: {
       ...params,

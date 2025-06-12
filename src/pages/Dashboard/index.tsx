@@ -29,15 +29,15 @@ const TableList: React.FC = () => {
   const [siteOptions, setSiteOptions] = useState<{ label: string; value: string }[]>([]);
   const [areaOptions, setAreaOptions] = useState<{ label: string; value: string }[]>([]);
 
-  const [cardStats, setCardStats] = useState({
-    totalFoodRescued: undefined,
-    co2Saved: undefined,
-    waterSaved: undefined,
-    equivTreesPlanted: undefined,
-    carKMOffTheRoad: undefined,
-    electricitySaved: undefined,
-    naturalGasSaved: undefined,
-  });
+  const [cardStats, setCardStats] = useState<{
+    totalFoodRescued?: number;
+    co2Saved?: number;
+    waterSaved?: number;
+    equivTreesPlanted?: number;
+    carKMOffTheRoad?: number;
+    electricitySaved?: number;
+    naturalGasSaved?: number;
+  }>({});
 
   const [cardLoading, setCardLoading] = useState(false);
 
@@ -628,8 +628,17 @@ const TableList: React.FC = () => {
         toolBarRender={false}
         params={searchParams}
         request={async (params) => {
+          console.log(params, 'params');
           setCardLoading(true);
-          const res = await getRescues(params);
+
+          // 映射 ProTable 的 current 到 API 的 page 参数
+          const apiParams = {
+            ...params,
+            page: params.current, // 将 ProTable 的 current 映射到 API 的 page
+          };
+          delete apiParams.current; // 删除旧的 current 字段
+
+          const res = await getRescues(apiParams);
           setCardLoading(false);
           console.log(res, 'resres');
           if (res.code === 200 && res.data && res.data.page) {
