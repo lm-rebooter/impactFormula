@@ -107,6 +107,25 @@ export async function getAllAreas(params?: {}, options?: { [key: string]: any })
   });
 }
 
+// api/d2l/rescue/export/csv?startDate=2024-01-01&endDate=2024-01-01&site=FL,WB
+
+// 导出
+export async function exportCsv(
+  params: {
+    page?: number;
+    pageSize?: number;
+    [key: string]: any;
+  } = {},
+  options?: { [key: string]: any },
+) {
+  return request<API.ApiResponse<API.RescuePageData>>('/api/d2l/rescue/export/csv', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
 //
 export async function formula(
   params: {

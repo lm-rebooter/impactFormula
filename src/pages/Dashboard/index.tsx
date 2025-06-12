@@ -1,4 +1,4 @@
-import { getRescues, getAllSites, getAllAreas } from '@/services/ant-design-pro/api';
+import { getRescues, getAllSites, getAllAreas, exportCsv } from '@/services/ant-design-pro/api';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
 import { Button, message, Form, DatePicker, Select, Spin } from 'antd';
@@ -125,9 +125,43 @@ const TableList: React.FC = () => {
 
   const columns = currentType === 'monthly' ? columnsMonthly : columnsWeekly;
 
-  const handleExportByDaySite = () => {
-    // TODO: Implement period export by day and site logic
-    message.info('EXPORT BY DAY AND SITE');
+  const handleExportByDaySite = async () => {
+    // 导出
+    const values = form.getFieldsValue();
+    const params = {
+      ...values,
+      startDate: values.monthRange ? values.monthRange[0].format('YYYY-MM-DD') : undefined,
+      endDate: values.monthRange ? values.monthRange[1].format('YYYY-MM-DD') : undefined,
+      site: Array.isArray(values.site) ? values.site.join(',') : values.site,
+    };
+    delete params.monthRange;
+
+    // 构建 query string
+    // const query = Object.entries(params)
+    //   .filter(([_, v]) => v !== undefined && v !== '')
+    //   .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v as string)}`)
+    //   .join('&');
+
+    try {
+      const response = await exportCsv(params);
+      console.log(response, 'response');
+      if (!response.ok) {
+        message.error('导出失败');
+        return;
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `export_${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      message.success('导出成功');
+    } catch (err) {
+      message.error('导出异常');
+    }
   };
 
   const handleSearch = (values: any) => {
