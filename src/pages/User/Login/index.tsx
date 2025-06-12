@@ -45,6 +45,7 @@ const Login: React.FC = () => {
           id: 'pages.login.success',
           defaultMessage: 'Login successful!',
         });
+        Cookies.set('token', `${msg.data.token}`);
         message.success(defaultLoginSuccessMessage);
         await fetchUserInfo();
         const urlParams = new URL(window.location.href).searchParams;
