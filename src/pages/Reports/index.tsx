@@ -1,76 +1,47 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Button, message, Form, Select, Spin, DatePicker, Space, Empty } from 'antd';
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
-
-import {
-  FooterToolbar,
-  ModalForm,
-  PageContainer,
-  ProDescriptions,
-  ProFormText,
-  ProFormTextArea,
-  ProTable,
-  ProForm,
-  ProFormSelect,
-  ProFormDatePicker,
-} from '@ant-design/pro-components';
+import React, { useState, useEffect } from 'react';
+import { Button, Form, Select, Spin, Empty } from 'antd';
+import { PageContainer } from '@ant-design/pro-components';
 import styles from './index.module.less';
-
-const filterOptions = [
-  { label: 'ABC', value: 'ABC' },
-  { label: 'AAA', value: 'AAA' },
-  { label: 'adhoc', value: 'adhoc' },
-  { label: 'Adhoc', value: 'Adhoc' },
-  { label: 'ADHOC', value: 'ADHOC' },
-  { label: 'Adhoc - chocolate egg candy', value: 'Adhoc - chocolate egg candy' },
-  { label: 'Adhoc-Juice BCC', value: 'Adhoc-Juice BCC' },
-  { label: 'AK', value: 'AK' },
-  { label: 'AK1', value: 'AK1' },
-  { label: 'AR', value: 'AR' },
-  { label: 'BA', value: 'BA' },
-  { label: 'BB', value: 'BB' },
-  { label: 'BC1', value: 'BC1' },
-  { label: 'BCS', value: 'BCS' },
-  { label: 'BD', value: 'BD' },
-  { label: 'BE', value: 'BE' },
-  { label: 'BG1', value: 'BG1' },
-  { label: 'BL', value: 'BL' },
-  { label: 'BN', value: 'BN' },
-  { label: 'BN1', value: 'BN1' },
-  { label: 'BR', value: 'BR' },
-  { label: 'CA', value: 'CA' },
-  { label: 'CC', value: 'CC' },
-  { label: 'CCP', value: 'CCP' },
-  { label: 'CDL1', value: 'CDL1' },
-  { label: 'CDL10', value: 'CDL10' },
-  { label: 'CDL11', value: 'CDL11' },
-  { label: 'CDL12', value: 'CDL12' },
-  { label: 'CDL13', value: 'CDL13' },
-  { label: 'CDL14', value: 'CDL14' },
-  { label: 'CDL15', value: 'CDL15' },
-];
+import { getAllSites, getAllAreas } from '@/services/ant-design-pro/api';
 
 const ReportsPage: React.FC = () => {
-  const [month, setMonth] = useState();
-  const [filters, setFilters] = useState<string[]>([]);
+  const [siteOptions, setSiteOptions] = useState<{ label: string; value: string }[]>([]);
+  const [areaOptions, setAreaOptions] = useState<{ label: string; value: string }[]>([]);
+  const [site, setSite] = useState<string[]>([]);
+  const [area, setArea] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [showPDF, setShowPDF] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string>('');
   const [form] = Form.useForm();
 
   useEffect(() => {
+    // 获取 site/area options
+    getAllSites().then((res) => {
+      if (res.code === 200 && Array.isArray(res.data)) {
+        setSiteOptions((res.data as string[]).map((item) => ({ label: item, value: item })));
+      }
+    });
+    getAllAreas().then((res) => {
+      if (res.code === 200 && Array.isArray(res.data)) {
+        setAreaOptions((res.data as string[]).map((item) => ({ label: item, value: item })));
+      }
+    });
     setLoading(true);
     setShowPDF(false);
     setTimeout(() => {
-      // setPdfUrl('https://static.taoche.com/taochecheicp.pdf'); // when there is data
-      setPdfUrl(''); // when there is no data
+      setPdfUrl(''); // 默认无数据
       setShowPDF(true);
       setLoading(false);
     }, 800);
   }, []);
 
-  const handleQuery = (values: any) => {
-    console.log('Query parameters:', values);
+  const handleSearch = (values: any) => {
+    // site/area 多选转字符串
+    const params = {
+      site: Array.isArray(values.site) ? values.site.join(',') : values.site,
+      area: Array.isArray(values.area) ? values.area.join(',') : values.area,
+    };
+    console.log('Search parameters:', params);
     setLoading(true);
     setShowPDF(false);
     setTimeout(() => {
@@ -80,43 +51,45 @@ const ReportsPage: React.FC = () => {
     }, 800);
   };
   const handleReset = () => {
-    // Reset form fields
     form.resetFields();
-    // Reset local state
-    setMonth(undefined);
-    setFilters([]);
+    setSite([]);
+    setArea([]);
     setPdfUrl('');
     setShowPDF(false);
     setLoading(false);
   };
+
   return (
     <PageContainer>
       <Form
         form={form}
         layout="inline"
         className={styles.filterForm}
-        initialValues={{ month, filters }}
-        onFinish={handleQuery}
+        initialValues={{ site, area }}
+        onFinish={handleSearch}
         onReset={handleReset}
       >
-        <Form.Item label="Report Period" name="month">
-          <DatePicker
-            picker="month"
-            value={month}
-            onChange={(v) => setMonth(v)}
-            allowClear={false}
-            style={{ width: 128 }}
-          />
-        </Form.Item>
-        <Form.Item label="Filter by" name="filters">
+        <Form.Item label="Site" name="site">
           <Select
             mode="multiple"
             allowClear
             showSearch
-            placeholder="Select filters"
-            value={filters}
-            onChange={(v) => setFilters(v)}
-            options={filterOptions}
+            placeholder="Please select site"
+            value={site}
+            onChange={(v) => setSite(v)}
+            options={siteOptions}
+            style={{ minWidth: 300, flex: 1 }}
+          />
+        </Form.Item>
+        <Form.Item label="Area" name="area">
+          <Select
+            mode="multiple"
+            allowClear
+            showSearch
+            placeholder="Please select area"
+            value={area}
+            onChange={(v) => setArea(v)}
+            options={areaOptions}
             style={{ minWidth: 300, flex: 1 }}
           />
         </Form.Item>
@@ -125,7 +98,7 @@ const ReportsPage: React.FC = () => {
             Reset
           </Button>
           <Button type="primary" htmlType="submit">
-            Query
+            Search
           </Button>
         </Form.Item>
       </Form>

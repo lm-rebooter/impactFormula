@@ -83,18 +83,35 @@ export async function getRescues(
 // 上传接口
 export const uploadFileWuliuExcel = `${HOST['/base']}/api/d2l/rescue/upload/csv`;
 
+// 获取site
+export async function getAllSites(options?: { [key: string]: any }) {
+  return request<{
+    data: API.AreaList;
+  }>('/api/d2l/rescue/sites', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+// 获取area
+export async function getAllAreas(params: {}, options?: { [key: string]: any }) {
+  return request<API.RuleList>('/api/d2l/rescue/areas', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 //
-export async function countRescues(
+export async function formula(
   params: {
-    // query
-    /** 当前的页码 */
-    current?: number;
-    /** 页面的容量 */
-    pageSize?: number;
+    weight?: number;
   },
   options?: { [key: string]: any },
 ) {
-  return request<API.RuleList>('/api/d2l/rescue/count', {
+  return request<API.RuleList>('/api/d2l/formula', {
     method: 'GET',
     params: {
       ...params,

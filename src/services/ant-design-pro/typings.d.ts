@@ -55,6 +55,11 @@ declare namespace API {
     total?: number;
     success?: boolean;
   };
+  type AreaList = {
+    data?: string[];
+    /** 列表的内容总数 */
+    total?: number;
+  };
 
   type FakeCaptcha = {
     code?: number;

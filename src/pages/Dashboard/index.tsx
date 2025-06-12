@@ -1,7 +1,7 @@
-import { getRescues, countRescues, getTotalWeight } from '@/services/ant-design-pro/api';
+import { getRescues, getAllSites, getAllAreas } from '@/services/ant-design-pro/api';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
-import { Button, message, Form, DatePicker, Select } from 'antd';
+import { Button, message, Form, DatePicker, Select, Spin } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import scaleIcon from './assets/scale.svg';
 import leafsIcon from './assets/leafs.svg';
@@ -24,40 +24,42 @@ const filterOptions = [
 const TableList: React.FC = () => {
   const actionRef = useRef<ActionType>();
 
-  const [totalRescues, setTotalRescues] = useState<number>(0);
-  const [totalWeight, setTotalWeight] = useState<number>(0);
   const [form] = Form.useForm();
-  const [queryParams, setQueryParams] = useState<any>({});
+  const [searchParams, setSearchParams] = useState<any>({});
+  const [siteOptions, setSiteOptions] = useState<{ label: string; value: string }[]>([]);
+  const [areaOptions, setAreaOptions] = useState<{ label: string; value: string }[]>([]);
+
+  const [cardStats, setCardStats] = useState({
+    totalFoodRescued: undefined,
+    co2Saved: undefined,
+    waterSaved: undefined,
+    equivTreesPlanted: undefined,
+    carKMOffTheRoad: undefined,
+    electricitySaved: undefined,
+    naturalGasSaved: undefined,
+  });
+
+  const [cardLoading, setCardLoading] = useState(false);
+
+  // 动态获取 site/area
+  const fetchSites = async () => {
+    const res = await getAllSites();
+    console.log(res, 'sssss');
+    if (res.code === 200 && Array.isArray(res.data)) {
+      setSiteOptions((res.data as string[]).map((item) => ({ label: item, value: item })));
+    }
+  };
+
+  const fetchAreas = async () => {
+    const res = await getAllAreas();
+    if (res.code === 200 && Array.isArray(res.data)) {
+      setAreaOptions((res.data as string[]).map((item) => ({ label: item, value: item })));
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [rescuesCount, weightTotal] = await Promise.all([
-          countRescues({}),
-          getTotalWeight({}),
-        ]);
-        setTotalRescues(rescuesCount.total || 0);
-        setTotalWeight(weightTotal.total || 0);
-      } catch (error) {
-        console.error('Failed to fetch initial data:', error);
-      }
-    };
-    fetchData();
-  }, []);
-
-  // 获取所有可用的 Site 和 Area 选项
-  const siteOptions = React.useMemo(() => {
-    const sites = new Set();
-    const areas = new Set();
-    // 这里可以从 mock 数据中获取，实际项目中应该从后端获取
-    for (let i = 0; i < 10; i++) {
-      sites.add(`Site ${String.fromCharCode(65 + i)}`);
-      areas.add(`Area ${i + 1}`);
-    }
-    return {
-      sites: Array.from(sites).map((site) => ({ label: site, value: site })),
-      areas: Array.from(areas).map((area) => ({ label: area, value: area })),
-    };
+    fetchSites();
+    fetchAreas();
   }, []);
 
   // 动态columns
@@ -73,7 +75,6 @@ const TableList: React.FC = () => {
 
   const columnsWeekly: ProColumns[] = [
     { title: 'Date', dataIndex: 'date', valueType: 'date' },
-    { title: 'Month', dataIndex: 'month', valueType: 'text' },
     { title: 'Site', dataIndex: 'site', valueType: 'text' },
     { title: 'Weight', dataIndex: 'weight', valueType: 'digit' },
     { title: 'Requests', dataIndex: 'requests', valueType: 'digit' },
@@ -84,13 +85,12 @@ const TableList: React.FC = () => {
     },
     { title: 'Title', dataIndex: 'title', valueType: 'text' },
     { title: 'Area', dataIndex: 'area', valueType: 'text' },
-    { title: 'No. of Links', dataIndex: 'links', valueType: 'digit' },
+    { title: 'No. of Links', dataIndex: 'numberOfLikes', valueType: 'digit' },
     { title: 'Impressions', dataIndex: 'impressions', valueType: 'digit' },
-    { title: 'Saved ($)', dataIndex: 'saved', valueType: 'digit' },
+    { title: 'Saved ($)', dataIndex: 'savedAmount', valueType: 'digit' },
   ];
 
   const columnsMonthly: ProColumns[] = [
-    { title: 'Month', dataIndex: 'month', valueType: 'text' },
     { title: 'Site', dataIndex: 'site', valueType: 'text' },
     { title: 'Food Saved', dataIndex: 'foodSaved', valueType: 'text' },
     { title: 'CO2 Saved', dataIndex: 'co2Saved', valueType: 'text' },
@@ -102,8 +102,8 @@ const TableList: React.FC = () => {
       sorter: true,
     },
     { title: 'Families Benefitted', dataIndex: 'familiesBenefitted', valueType: 'text' },
-    { title: 'No. of Links', dataIndex: 'links', valueType: 'digit' },
-    { title: 'Saved ($)', dataIndex: 'saved', valueType: 'digit' },
+    { title: 'No. of Links', dataIndex: 'numberOfLikes', valueType: 'digit' },
+    { title: 'Saved ($)', dataIndex: 'savedAmount', valueType: 'digit' },
     {
       title: 'Download Report',
       dataIndex: 'download',
@@ -125,48 +125,38 @@ const TableList: React.FC = () => {
 
   const columns = currentType === 'monthly' ? columnsMonthly : columnsWeekly;
 
-  const handleExport = () => {
-    // TODO: Implement period export logic
-    message.info('EXPORT');
-  };
-
   const handleExportByDaySite = () => {
     // TODO: Implement period export by day and site logic
     message.info('EXPORT BY DAY AND SITE');
   };
 
-  const handleQuery = (values: any) => {
+  const handleSearch = (values: any) => {
     console.log(form.getFieldsValue(), 'form???');
     console.log(values, 'values???');
 
     const params = {
       ...values,
-      startDate: values.monthRange ? values.monthRange[0].format('YYYY-MM') : undefined,
-      endDate: values.monthRange ? values.monthRange[1].format('YYYY-MM') : undefined,
+      startDate: values.monthRange ? values.monthRange[0].format('YYYY-MM-DD') : undefined,
+      endDate: values.monthRange ? values.monthRange[1].format('YYYY-MM-DD') : undefined,
+      site: Array.isArray(values.site) ? values.site.join(',') : values.site,
+      area: Array.isArray(values.area) ? values.area.join(',') : values.area,
     };
     delete params.monthRange;
     console.log(params, 'params???');
-    setQueryParams(params);
+    setSearchParams(params);
 
     actionRef.current?.reload();
-    // 同时调用 countRescues 和 getTotalWeight 并更新状态
-    const fetchData = async () => {
-      try {
-        const [rescuesCount, weightTotal] = await Promise.all([
-          countRescues({}),
-          getTotalWeight({}),
-        ]);
-        setTotalRescues(rescuesCount.total || 0);
-        setTotalWeight(weightTotal.total || 0);
-      } catch (error) {
-        console.error('Failed to fetch data on query:', error);
-      }
-    };
-    fetchData();
   };
   const handleReset = () => {
     form.resetFields();
+    setCurrentType('period');
     console.log('reset???');
+  };
+
+  // 千分位格式化
+  const formatNumber = (val: any) => {
+    if (val === null || val === undefined || val === '' || isNaN(val)) return '-';
+    return Number(val).toLocaleString();
   };
 
   return (
@@ -176,7 +166,7 @@ const TableList: React.FC = () => {
         layout="inline"
         className={styles.filterForm}
         initialValues={{ type: 'period' }}
-        onFinish={handleQuery}
+        onFinish={handleSearch}
         onReset={handleReset}
       >
         <Form.Item label="Type" name="type">
@@ -200,16 +190,16 @@ const TableList: React.FC = () => {
           />
         </Form.Item>
 
-        {form.getFieldValue('type') === 'period' && (
+        {currentType === 'period' && (
           <Form.Item
-            label="Range"
+            label="Day"
             name="monthRange"
-            rules={[{ required: true, message: 'Please select month range' }]}
+            rules={[{ required: true, message: 'Please select date' }]}
           >
             <RangePicker
-              picker="month"
+              // picker="month"
               style={{ width: 320 }}
-              placeholder={['Start Month', 'End Month']}
+              placeholder={['Start Date', 'End Date']}
               allowClear={false}
               onChange={(_dates: any, dateStrings: [string, string]) => {
                 console.log(_dates, '_dates', dateStrings, 'dateStrings???');
@@ -224,25 +214,27 @@ const TableList: React.FC = () => {
 
         <Form.Item label="Site" name="site">
           <Select
+            mode="multiple"
             allowClear
             showSearch
             placeholder="Please select site"
-            options={siteOptions.sites}
+            options={siteOptions}
             style={{ minWidth: 300, flex: 1 }}
           />
         </Form.Item>
 
-        {form.getFieldValue('type') === 'period' && (
+        {currentType === 'period' && (
           <Form.Item
             label="Area"
             name="area"
             rules={[{ required: true, message: 'Please select area' }]}
           >
             <Select
+              mode="multiple"
               allowClear
               showSearch
               placeholder="Please select area"
-              options={siteOptions.areas}
+              options={areaOptions}
               style={{ minWidth: 300, flex: 1 }}
             />
           </Form.Item>
@@ -254,337 +246,379 @@ const TableList: React.FC = () => {
           </Button>
 
           <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
-            Query
+            Search
           </Button>
           {currentType === 'period' && (
             <>
-              <Button onClick={handleExport} key="export" style={{ marginRight: 8 }}>
-                EXPORT
-              </Button>
               <Button
                 onClick={handleExportByDaySite}
                 key="exportByDaySite"
                 style={{ marginRight: 8 }}
               >
-                EXPORT BY DAY AND SITE
+                EXPORT BY DAY AND AREA
               </Button>
             </>
           )}
           <UploadModal
             onUpdate={() => {
               // console.log("SAH那个穿")
-              // handleQuery;
+              // handleSearch;
             }}
           />
         </Form.Item>
       </Form>
 
-      <ProCard
-        gutter={[{ xs: 8, sm: 8, md: 12, lg: 16, xl: 20 }, 12]}
-        style={{ marginBlockStart: 12, background: 'transparent' }}
-        bodyStyle={{ padding: 0, background: 'transparent' }}
-      >
+      <Spin spinning={cardLoading}>
         <ProCard
-          bordered
-          style={{
-            borderRadius: 12,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-            minWidth: 180,
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 18px',
-            margin: 0,
-            background: '#fff',
-          }}
-          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
+          gutter={[{ xs: 8, sm: 8, md: 12, lg: 16, xl: 20 }, 12]}
+          style={{ marginBlockStart: 12, background: 'transparent' }}
+          bodyStyle={{ padding: 0, background: 'transparent' }}
         >
-          <span
+          <ProCard
+            bordered
             style={{
-              display: 'inline-flex',
+              borderRadius: 12,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+              minWidth: 180,
+              height: 64,
+              display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: '#e6f4f1',
-              marginRight: 12,
-              flexShrink: 0,
+              padding: '0 18px',
+              margin: 0,
+              background: '#fff',
             }}
+            bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
           >
-            <img src={scaleIcon} alt="Total Food Rescued Icon" style={{ width: 18, height: 18 }} />
-          </span>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: '#e6f4f1',
+                marginRight: 12,
+                flexShrink: 0,
+              }}
+            >
+              <img
+                src={scaleIcon}
+                alt="Total Food Rescued Icon"
+                style={{ width: 18, height: 18 }}
+              />
+            </span>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                flex: 1,
+              }}
+            >
+              <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+                Total Food Rescued
+              </span>
+              <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+                {formatNumber(cardStats.totalFoodRescued)} KG
+              </span>
+            </div>
+          </ProCard>
+
+          <ProCard
+            bordered
+            style={{
+              borderRadius: 12,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+              minWidth: 180,
+              height: 64,
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 18px',
+              margin: 0,
+              background: '#fff',
+            }}
+            bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
           >
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
-              Total Food Rescued
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: '#e6f4f1',
+                marginRight: 12,
+                flexShrink: 0,
+              }}
+            >
+              <img src={leafsIcon} alt="C02 Saved Icon" style={{ width: 18, height: 18 }} />
             </span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
-              {totalWeight} KG
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                flex: 1,
+              }}
+            >
+              <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+                C02 Saved
+              </span>
+              <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+                {formatNumber(cardStats.co2Saved)} kg
+              </span>
+            </div>
+          </ProCard>
+
+          <ProCard
+            bordered
+            style={{
+              borderRadius: 12,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+              minWidth: 180,
+              height: 64,
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 18px',
+              margin: 0,
+              background: '#fff',
+            }}
+            bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
+          >
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: '#e6f4f1',
+                marginRight: 12,
+                flexShrink: 0,
+              }}
+            >
+              <img src={waterIcon} alt="Water Saved Icon" style={{ width: 18, height: 18 }} />
             </span>
-          </div>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                flex: 1,
+              }}
+            >
+              <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+                Water Saved
+              </span>
+              <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+                {formatNumber(cardStats.waterSaved)} litres
+              </span>
+            </div>
+          </ProCard>
+          <ProCard
+            bordered
+            style={{
+              borderRadius: 12,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+              minWidth: 180,
+              height: 64,
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 18px',
+              margin: 0,
+              background: '#fff',
+            }}
+            bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
+          >
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: '#e6f4f1',
+                marginRight: 12,
+                flexShrink: 0,
+              }}
+            >
+              <img
+                src={treeIcon}
+                alt="Equiv Trees Planted Icon"
+                style={{ width: 18, height: 18 }}
+              />
+            </span>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                flex: 1,
+              }}
+            >
+              <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+                Equiv Trees Planted
+              </span>
+              <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+                {formatNumber(cardStats.equivTreesPlanted)}
+              </span>
+            </div>
+          </ProCard>
         </ProCard>
 
         <ProCard
-          bordered
-          style={{
-            borderRadius: 12,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-            minWidth: 180,
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 18px',
-            margin: 0,
-            background: '#fff',
-          }}
-          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
+          gutter={[{ xs: 8, sm: 8, md: 12, lg: 16, xl: 20 }, 12]}
+          style={{ marginBlockStart: 12, background: 'transparent' }}
+          bodyStyle={{ padding: 0, background: 'transparent' }}
         >
-          <span
+          <ProCard
+            bordered
             style={{
-              display: 'inline-flex',
+              borderRadius: 12,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+              minWidth: 180,
+              height: 64,
+              display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: '#e6f4f1',
-              marginRight: 12,
-              flexShrink: 0,
+              padding: '0 18px',
+              margin: 0,
+              background: '#fff',
             }}
+            bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
           >
-            <img src={leafsIcon} alt="Total Rescues Icon" style={{ width: 18, height: 18 }} />
-          </span>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
-          >
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
-              Total Rescues
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: '#e6f4f1',
+                marginRight: 12,
+                flexShrink: 0,
+              }}
+            >
+              <img src={carIcon} alt="Car KM Off The Road Icon" style={{ width: 18, height: 18 }} />
             </span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
-              {totalRescues}
-            </span>
-          </div>
-        </ProCard>
-
-        <ProCard
-          bordered
-          style={{
-            borderRadius: 12,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-            minWidth: 180,
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 18px',
-            margin: 0,
-            background: '#fff',
-          }}
-          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
-        >
-          <span
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                flex: 1,
+              }}
+            >
+              <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+                Car KM Off The Road
+              </span>
+              <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+                {formatNumber(cardStats.carKMOffTheRoad)}
+              </span>
+            </div>
+          </ProCard>
+          <ProCard
+            bordered
             style={{
-              display: 'inline-flex',
+              borderRadius: 12,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+              minWidth: 180,
+              height: 64,
+              display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: '#e6f4f1',
-              marginRight: 12,
-              flexShrink: 0,
+              padding: '0 18px',
+              margin: 0,
+              background: '#fff',
             }}
+            bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
           >
-            <img src={waterIcon} alt="Water Saved Icon" style={{ width: 18, height: 18 }} />
-          </span>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
-          >
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
-              Water Saved
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: '#e6f4f1',
+                marginRight: 12,
+                flexShrink: 0,
+              }}
+            >
+              <img
+                src={electricityIcon}
+                alt="Electricity Saved Icon"
+                style={{ width: 18, height: 18 }}
+              />
             </span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
-              736,000 litres
-            </span>
-          </div>
-        </ProCard>
-        <ProCard
-          bordered
-          style={{
-            borderRadius: 12,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-            minWidth: 180,
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 18px',
-            margin: 0,
-            background: '#fff',
-          }}
-          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
-        >
-          <span
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                flex: 1,
+              }}
+            >
+              <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+                Electricity Saved
+              </span>
+              <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+                {formatNumber(cardStats.electricitySaved)} kg
+              </span>
+            </div>
+          </ProCard>
+          <ProCard
+            bordered
             style={{
-              display: 'inline-flex',
+              borderRadius: 12,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+              minWidth: 180,
+              height: 64,
+              display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: '#e6f4f1',
-              marginRight: 12,
-              flexShrink: 0,
+              padding: '0 18px',
+              margin: 0,
+              background: '#fff',
             }}
+            bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
           >
-            <img src={treeIcon} alt="Equiv Trees Planted Icon" style={{ width: 18, height: 18 }} />
-          </span>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
-          >
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
-              Equiv Trees Planted
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: '#e6f4f1',
+                marginRight: 12,
+                flexShrink: 0,
+              }}
+            >
+              <img src={gasIcon} alt="Natural Gas Saved Icon" style={{ width: 18, height: 18 }} />
             </span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
-              108
-            </span>
-          </div>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                flex: 1,
+              }}
+            >
+              <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
+                Natural Gas Saved
+              </span>
+              <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
+                {formatNumber(cardStats.naturalGasSaved)} litres
+              </span>
+            </div>
+          </ProCard>
         </ProCard>
-      </ProCard>
-
-      <ProCard
-        gutter={[{ xs: 8, sm: 8, md: 12, lg: 16, xl: 20 }, 12]}
-        style={{ marginBlockStart: 12, background: 'transparent' }}
-        bodyStyle={{ padding: 0, background: 'transparent' }}
-      >
-        <ProCard
-          bordered
-          style={{
-            borderRadius: 12,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-            minWidth: 180,
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 18px',
-            margin: 0,
-            background: '#fff',
-          }}
-          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
-        >
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: '#e6f4f1',
-              marginRight: 12,
-              flexShrink: 0,
-            }}
-          >
-            <img src={carIcon} alt="Car KM Off The Road Icon" style={{ width: 18, height: 18 }} />
-          </span>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
-          >
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
-              Car KM Off The Road
-            </span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
-              24,143
-            </span>
-          </div>
-        </ProCard>
-        <ProCard
-          bordered
-          style={{
-            borderRadius: 12,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-            minWidth: 180,
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 18px',
-            margin: 0,
-            background: '#fff',
-          }}
-          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
-        >
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: '#e6f4f1',
-              marginRight: 12,
-              flexShrink: 0,
-            }}
-          >
-            <img
-              src={electricityIcon}
-              alt="Electricity Saved Icon"
-              style={{ width: 18, height: 18 }}
-            />
-          </span>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
-          >
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
-              Electricity Saved
-            </span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
-              6,499 kWh
-            </span>
-          </div>
-        </ProCard>
-        <ProCard
-          bordered
-          style={{
-            borderRadius: 12,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-            minWidth: 180,
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 18px',
-            margin: 0,
-            background: '#fff',
-          }}
-          bodyStyle={{ padding: 0, height: 64, display: 'flex', alignItems: 'center' }}
-        >
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: '#e6f4f1',
-              marginRight: 12,
-              flexShrink: 0,
-            }}
-          >
-            <img src={gasIcon} alt="Natural Gas Saved Icon" style={{ width: 18, height: 18 }} />
-          </span>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}
-          >
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 500, lineHeight: 1.1 }}>
-              Natural Gas Saved
-            </span>
-            <span style={{ fontSize: 17, fontWeight: 600, marginTop: 2, letterSpacing: 0.5 }}>
-              967 litres
-            </span>
-          </div>
-        </ProCard>
-      </ProCard>
+      </Spin>
 
       <ProTable<API.RuleListItem, API.PageParams>
         actionRef={actionRef}
@@ -592,24 +626,32 @@ const TableList: React.FC = () => {
         search={false}
         options={false}
         toolBarRender={false}
-        params={queryParams}
+        params={searchParams}
         request={async (params) => {
+          setCardLoading(true);
           const res = await getRescues(params);
+          setCardLoading(false);
           console.log(res, 'resres');
-          // 根据 API.RuleList 的结构调整返回
-          if (res.code === 200 && res.data.content) {
+          if (res.code === 200 && res.data && res.data.page) {
+            // 只在第一页时更新卡片数据
+            if (!params.current || params.current === 1) {
+              setCardStats({
+                totalFoodRescued: res.data.totalFoodRescued,
+                co2Saved: res.data.co2Saved,
+                waterSaved: res.data.waterSaved,
+                equivTreesPlanted: res.data.equivTreesPlanted,
+                carKMOffTheRoad: res.data.carKMOffTheRoad,
+                electricitySaved: res.data.electricitySaved,
+                naturalGasSaved: res.data.naturalGasSaved,
+              });
+            }
             return {
-              data: res.data.content,
-              success: true, // 假设只要有数据就成功
-              total: res.data.totalElements, // ProTable 需要 total 字段用于分页
-            };
-          } else {
-            return {
-              data: [],
+              data: res.data.page.content,
               success: true,
-              total: 0,
+              total: res.data.page.totalElements,
             };
           }
+          return { data: [], success: true, total: 0 };
         }}
         columns={columns}
       />

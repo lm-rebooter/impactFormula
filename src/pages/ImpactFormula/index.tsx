@@ -1,20 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Button, Card, Form, Input, Spin, Statistic, Space, Empty,Modal } from 'antd';
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
+import React, { useState } from 'react';
+import { Button, Form, Input, Modal, Spin } from 'antd';
+import { formula } from '@/services/ant-design-pro/api';
+import { formatNumber } from '../../utils/format';
 
-import {
-  FooterToolbar,
-  ModalForm,
-  PageContainer,
-  ProDescriptions,
-  ProCard,
-  ProFormText,
-  ProFormTextArea,
-  ProTable,
-  ProForm,
-  ProFormSelect,
-  ProFormDatePicker,
-} from '@ant-design/pro-components';
+import { PageContainer, ProCard } from '@ant-design/pro-components';
 import styles from './index.module.less';
 import leafsIcon from './assets/leafs.svg';
 import carIcon from './assets/car.svg';
@@ -23,42 +12,62 @@ import treeIcon from './assets/tree.svg';
 import electricityIcon from './assets/electricity.svg';
 import gasIcon from './assets/gas.svg';
 
-
 const ImpactFormula: React.FC = () => {
+  // 卡片数据 state
+  const [cardStats, setCardStats] = useState<{
+    co2Saved?: number;
+    waterSaved?: number;
+    equivTreesPlanted?: number;
+    carKMOffTheRoad?: number;
+    electricitySaved?: number;
+    naturalGasSaved?: number;
+  }>({});
   const [loading, setLoading] = useState(false);
-  const [showPDF, setShowPDF] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string>('');
   const [showCalculationModal, setShowCalculationModal] = useState(false);
-  
   const [form] = Form.useForm();
 
-  useEffect(() => {
+  // 查询时调用 formula 接口
+  const handleSearch = async (values: any) => {
     setLoading(true);
-    setShowPDF(false);
-    setTimeout(() => {
-      // setPdfUrl('https://static.taoche.com/taochecheicp.pdf'); // when there is data
-      setPdfUrl(''); // when there is no data
-      setShowPDF(true);
-      setLoading(false);
-    }, 800);
-  }, []);
+    try {
+      const res = (await formula({ weight: values.weight })) as {
+        success: boolean;
+        data?: {
+          c02Saved?: number;
+          waterSaved?: number;
+          equivTreesPlanted?: number;
+          carKMOffTheRoad?: number;
+          electricitySaved?: number;
+          naturalGasSaved?: number;
+        };
+      };
 
-  const handleQuery = (values: any) => {
-    console.log('Query parameters:', values);
-    setLoading(true);
-    setShowPDF(false);
-    setTimeout(() => {
-      setPdfUrl('https://static.taoche.com/taochecheicp.pdf');
-      setShowPDF(true);
+      if (res && res.code === 200 && res.data) {
+        setCardStats({
+          co2Saved: res.data.c02Saved,
+          waterSaved: res.data.waterSaved,
+          equivTreesPlanted: res.data.equivTreesPlanted,
+          carKMOffTheRoad: res.data.carKMOffTheRoad,
+          electricitySaved: res.data.electricitySaved,
+          naturalGasSaved: res.data.naturalGasSaved,
+        });
+      }
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
   const handleReset = () => {
-    // Reset form fields
     form.resetFields();
-    // Reset local state
-    
+    setCardStats({
+      co2Saved: undefined,
+      waterSaved: undefined,
+      equivTreesPlanted: undefined,
+      carKMOffTheRoad: undefined,
+      electricitySaved: undefined,
+      naturalGasSaved: undefined,
+    });
   };
+
   return (
     <PageContainer>
       <Form
@@ -66,7 +75,7 @@ const ImpactFormula: React.FC = () => {
         layout="inline"
         className={styles.filterForm}
         initialValues={{ weight: 1000 }}
-        onFinish={handleQuery}
+        onFinish={handleSearch}
         onReset={handleReset}
       >
         <Form.Item
@@ -79,14 +88,20 @@ const ImpactFormula: React.FC = () => {
             },
           ]}
         >
-          <Input type="number" min={0} suffix="kg" placeholder="Enter weight" style={{ width: 160, marginRight: 8 }} />
+          <Input
+            type="number"
+            min={0}
+            suffix="kg"
+            placeholder="Enter weight"
+            style={{ width: 160, marginRight: 8 }}
+          />
         </Form.Item>
         <Form.Item>
           <Button htmlType="reset" style={{ marginRight: 8 }}>
             Reset
           </Button>
           <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
-            Query
+            Search
           </Button>
           <Button
             type="primary"
@@ -116,7 +131,6 @@ const ImpactFormula: React.FC = () => {
         <div
           style={{
             width: '100%',
-            // height: '80vh',
             minHeight: 550,
             display: 'flex',
             alignItems: 'center',
@@ -138,199 +152,215 @@ const ImpactFormula: React.FC = () => {
         </div>
       </Modal>
 
+      <Spin spinning={loading}>
+        <ProCard
+          gutter={[{ xs: 8, sm: 8, md: 16, lg: 24, xl: 32 }, 16]}
+          style={{ marginBlockStart: 16 }}
+        >
+          <ProCard bordered>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: 120,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: '#e6f4f1',
+                    marginRight: 16,
+                  }}
+                >
+                  <img src={leafsIcon} alt="CO2 Icon" style={{ width: 24, height: 24 }} />
+                </span>
+                <span style={{ fontSize: 20, fontWeight: 500 }}>C02 Saved</span>
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 500 }}>
+                {formatNumber(cardStats.co2Saved)} kg
+              </div>
+            </div>
+          </ProCard>
+          <ProCard bordered title={null}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: 120,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: '#e6f4f1',
+                    marginRight: 16,
+                  }}
+                >
+                  <img src={waterIcon} alt="Water Icon" style={{ width: 24, height: 24 }} />
+                </span>
+                <span style={{ fontSize: 20, fontWeight: 500 }}>Water Saved</span>
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 500 }}>
+                {formatNumber(cardStats.waterSaved)} litres
+              </div>
+            </div>
+          </ProCard>
+          <ProCard bordered title={null}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: 120,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: '#e6f4f1',
+                    marginRight: 16,
+                  }}
+                >
+                  <img src={treeIcon} alt="Tree Icon" style={{ width: 24, height: 24 }} />
+                </span>
+                <span style={{ fontSize: 20, fontWeight: 500 }}>Equiv Trees Planted</span>
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 500 }}>
+                {formatNumber(cardStats.equivTreesPlanted)}
+              </div>
+            </div>
+          </ProCard>
+        </ProCard>
 
-      <ProCard
-        gutter={[{ xs: 8, sm: 8, md: 16, lg: 24, xl: 32 }, 16]}
-        style={{ marginBlockStart: 16 }}
-      >
-        <ProCard bordered>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 120,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  background: '#e6f4f1',
-                  marginRight: 16,
-                }}
-              >
-                <img src={leafsIcon} alt="CO2 Icon" style={{ width: 24, height: 24 }} />
-              </span>
-              <span style={{ fontSize: 20, fontWeight: 500 }}>C02 Saved</span>
+        <ProCard
+          gutter={[{ xs: 8, sm: 8, md: 16, lg: 24, xl: 32 }, 16]}
+          style={{ marginBlockStart: 16 }}
+        >
+          <ProCard bordered>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: 120,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: '#e6f4f1',
+                    marginRight: 16,
+                  }}
+                >
+                  <img src={carIcon} alt="Car Icon" style={{ width: 24, height: 24 }} />
+                </span>
+                <span style={{ fontSize: 20, fontWeight: 500 }}>Car KM Off The Road</span>
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 500 }}>
+                {formatNumber(cardStats.carKMOffTheRoad)}
+              </div>
             </div>
-            <div style={{ fontSize: 24, fontWeight: 500 }}>5,190 kg</div>
-          </div>
-        </ProCard>
-        <ProCard bordered title={null}>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 120,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  background: '#e6f4f1',
-                  marginRight: 16,
-                }}
-              >
-                <img src={waterIcon} alt="Water Icon" style={{ width: 24, height: 24 }} />
-              </span>
-              <span style={{ fontSize: 20, fontWeight: 500 }}>Water Saved</span>
+          </ProCard>
+          <ProCard bordered>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: 120,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: '#e6f4f1',
+                    marginRight: 16,
+                  }}
+                >
+                  <img
+                    src={electricityIcon}
+                    alt="Electricity Icon"
+                    style={{ width: 24, height: 24 }}
+                  />
+                </span>
+                <span style={{ fontSize: 20, fontWeight: 500 }}>Electricity Saved</span>
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 500 }}>
+                {formatNumber(cardStats.electricitySaved)} kg
+              </div>
             </div>
-            <div style={{ fontSize: 24, fontWeight: 500 }}>736,000 litres</div>
-          </div>
-        </ProCard>
-        <ProCard bordered title={null}>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 120,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  background: '#e6f4f1',
-                  marginRight: 16,
-                }}
-              >
-                <img src={treeIcon} alt="Tree Icon" style={{ width: 24, height: 24 }} />
-              </span>
-              <span style={{ fontSize: 20, fontWeight: 500 }}>Equiv Trees Planted</span>
+          </ProCard>
+          <ProCard bordered>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: 120,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: '#e6f4f1',
+                    marginRight: 16,
+                  }}
+                >
+                  <img src={gasIcon} alt="Gas Icon" style={{ width: 24, height: 24 }} />
+                </span>
+                <span style={{ fontSize: 20, fontWeight: 500 }}>Natural Gas Saved</span>
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 500 }}>
+                {formatNumber(cardStats.naturalGasSaved)} litres
+              </div>
             </div>
-            <div style={{ fontSize: 24, fontWeight: 500 }}>108</div>
-          </div>
+          </ProCard>
         </ProCard>
-      </ProCard>
-
-      <ProCard
-        gutter={[{ xs: 8, sm: 8, md: 16, lg: 24, xl: 32 }, 16]}
-        style={{ marginBlockStart: 16 }}
-      >
-        <ProCard bordered>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 120,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  background: '#e6f4f1',
-                  marginRight: 16,
-                }}
-              >
-                <img src={carIcon} alt="Car Icon" style={{ width: 24, height: 24 }} />
-              </span>
-              <span style={{ fontSize: 20, fontWeight: 500 }}>Car KM Off The Road</span>
-            </div>
-            <div style={{ fontSize: 24, fontWeight: 500 }}>24,143</div>
-          </div>
-        </ProCard>
-        <ProCard bordered>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 120,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  background: '#e6f4f1',
-                  marginRight: 16,
-                }}
-              >
-                <img src={electricityIcon} alt="Electricity Icon" style={{ width: 24, height: 24 }} />
-              </span>
-              <span style={{ fontSize: 20, fontWeight: 500 }}>Electricity Saved</span>
-            </div>
-            <div style={{ fontSize: 24, fontWeight: 500 }}>6,499 kWh</div>
-          </div>
-        </ProCard>
-        <ProCard bordered>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 120,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  background: '#e6f4f1',
-                  marginRight: 16,
-                }}
-              >
-                <img src={gasIcon} alt="Gas Icon" style={{ width: 24, height: 24 }} />
-              </span>
-              <span style={{ fontSize: 20, fontWeight: 500 }}>Natural Gas Saved</span>
-            </div>
-            <div style={{ fontSize: 24, fontWeight: 500 }}>967 litres</div>
-          </div>
-        </ProCard>
-      </ProCard>
-
+      </Spin>
     </PageContainer>
   );
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
@@ -7,20 +7,26 @@ import { changePassword } from '@/services/ant-design-pro/api';
 const ChangePassword: React.FC = () => {
   const [form] = Form.useForm();
   const { initialState } = useModel('@@initialState');
+  const [loading, setLoading] = useState(false);
 
   const handleFinish = (values: any) => {
+    setLoading(true);
     const params = {
       email: values.email,
       oldPassword: values.oldPassword,
       newPassword: values.newPassword,
     };
-    changePassword({ ...params }).then((res: any) => {
-      if (res.code === 200) {
-        message.success('Modified successfully');
-      } else {
-        message.error(res.message);
-      }
-    });
+    changePassword({ ...params })
+      .then((res: any) => {
+        if (res.code === 200) {
+          message.success('Modified successfully');
+        } else {
+          message.error(res.message);
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
@@ -64,7 +70,7 @@ const ChangePassword: React.FC = () => {
             <Input.Password placeholder="Please input your newPassword!" />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>
+            <Button type="primary" htmlType="submit" block loading={loading}>
               Submit
             </Button>
           </Form.Item>
