@@ -133,6 +133,7 @@ const TableList: React.FC = () => {
       startDate: values.monthRange ? values.monthRange[0].format('YYYY-MM-DD') : undefined,
       endDate: values.monthRange ? values.monthRange[1].format('YYYY-MM-DD') : undefined,
       site: Array.isArray(values.site) ? values.site.join(',') : values.site,
+      area: Array.isArray(values.area) ? values.area.join(',') : values.area,
     };
     delete params.monthRange;
 
