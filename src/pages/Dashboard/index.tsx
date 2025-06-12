@@ -1,4 +1,4 @@
-import { getRescues, getAllSites, getAllAreas, exportCsv } from '@/services/ant-design-pro/api';
+import { getRescues, getAllSites, getAllAreas, exportCsv } from '@/services/d2g/api';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
 import { Button, message, Form, DatePicker, Select, Spin } from 'antd';

@@ -1,5 +1,5 @@
 import { Footer } from '@/components';
-import { login, register } from '@/services/ant-design-pro/api';
+import { login, register } from '@/services/d2g/api';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { history, useIntl, useModel } from '@umijs/max';

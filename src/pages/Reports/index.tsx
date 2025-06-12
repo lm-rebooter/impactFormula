@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Form, Select, Spin, Empty } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import styles from './index.module.less';
-import { getAllSites, getAllAreas } from '@/services/ant-design-pro/api';
+import { getAllSites, getAllAreas } from '@/services/d2g/api';
 
 const ReportsPage: React.FC = () => {
   const [siteOptions, setSiteOptions] = useState<{ label: string; value: string }[]>([]);

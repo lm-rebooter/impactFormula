@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Form, Input, Modal, Spin } from 'antd';
-import { formula } from '@/services/ant-design-pro/api';
+import { formula } from '@/services/d2g/api';
 import { formatNumber } from '../../utils/format';
 
 import { PageContainer, ProCard } from '@ant-design/pro-components';

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Modal, message, Upload, Spin } from 'antd';
 import Cookies from 'js-cookie';
-import { uploadFileWuliuExcel } from '@/services/ant-design-pro/api';
+import { uploadFileWuliuExcel } from '@/services/d2g/api';
 import styles from '../index.module.less';
 const UploadModal = ({ onUpdate }) => {
   let RefModal = null;

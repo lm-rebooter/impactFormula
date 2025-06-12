@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
-import { changePassword } from '@/services/ant-design-pro/api';
+import { changePassword } from '@/services/d2g/api';
 
 const ChangePassword: React.FC = () => {
   const [form] = Form.useForm();
