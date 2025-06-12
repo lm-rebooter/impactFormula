@@ -32,7 +32,7 @@ export async function getInitialState(): Promise<{
     }
     return undefined;
   };
-  // 如果不是登录页面，执行
+  // If not on the login page, execute
   const { location } = history;
   if (location.pathname !== loginPath) {
     const currentUser = await fetchUserInfo();
@@ -48,7 +48,7 @@ export async function getInitialState(): Promise<{
   };
 }
 
-// ProLayout 支持的api https://procomponents.ant.design/components/layout
+// ProLayout supported api https://procomponents.ant.design/components/layout
 export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {
   return {
     actionsRender: () => [],
@@ -62,10 +62,10 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     waterMarkProps: {
       content: initialState?.currentUser?.name,
     },
-    // footerRender: () => <Footer />,
+    // footerRender: () => <Footer />, // Custom footer
     onPageChange: () => {
       const { location } = history;
-      // 如果没有登录，重定向到 login
+      // If not logged in, redirect to login
       if (!initialState?.currentUser && location.pathname !== loginPath) {
         history.push(loginPath);
       }
@@ -96,9 +96,9 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
         ]
       ,
     menuHeaderRender: undefined,
-    // 自定义 403 页面
+    // Custom 403 page
     // unAccessible: <div>unAccessible</div>,
-    // 增加一个 loading 的状态
+    // Add a loading state
     childrenRender: (children) => {
       // if (initialState?.loading) return <PageLoading />;
       return (
@@ -125,9 +125,9 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
 };
 
 /**
- * @name request 配置，可以配置错误处理
- * 它基于 axios 和 ahooks 的 useRequest 提供了一套统一的网络请求和错误处理方案。
- * @doc https://umijs.org/docs/max/request#配置
+ * @name request configuration, can configure error handling
+ * It provides a unified network request and error handling solution based on axios and ahooks' useRequest.
+ * @doc https://umijs.org/docs/max/request#configuration
  */
 export const request = {
   ...errorConfig,

@@ -43,35 +43,6 @@
       },
       "x-swagger-router-controller": "api"
     },
-    "/api/login/captcha": {
-      "post": {
-        "description": "Send verification code",
-        "operationId": "getFakeCaptcha",
-        "tags": ["login"],
-        "parameters": [
-          {
-            "name": "phone",
-            "in": "query",
-            "description": "Phone number",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FakeCaptcha"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/login/outLogin": {
       "post": {
         "description": "Login API",
