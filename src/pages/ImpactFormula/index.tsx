@@ -100,7 +100,7 @@ const ImpactFormula: React.FC = () => {
           <Button htmlType="reset" style={{ marginRight: 8 }}>
             Reset
           </Button>
-          <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
+          <Button type="primary" htmlType="submit" style={{ marginRight: 8 }} loading={loading}>
             Search
           </Button>
           <Button

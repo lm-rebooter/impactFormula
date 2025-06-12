@@ -40,6 +40,8 @@ const TableList: React.FC = () => {
   }>({});
 
   const [cardLoading, setCardLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
 
   // 动态获取 site/area
   const fetchSites = async () => {
@@ -67,10 +69,27 @@ const TableList: React.FC = () => {
   const isMonthly = currentType === 'monthly';
   console.log(isMonthly, 'isMonthly???');
 
-  const handleDownload = (record: any) => {
-    // Replace with actual download logic
-    // For example: window.open(`/api/download?id=${record.key}`)
-    message.success(`Downloaded report: ${record.title || record.key}`);
+  const handleDownload = async (record: any) => {
+    try {
+      // 假设exportCsv可用于下载单个报告，参数为{ key: record.key }
+      const response = await exportCsv({ key: record.key });
+      if (!response.ok) {
+        message.error('下载失败');
+        return;
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `report_${record.key || Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      message.success('下载成功');
+    } catch (err) {
+      message.error('下载异常');
+    }
   };
 
   const columnsWeekly: ProColumns[] = [
@@ -126,7 +145,7 @@ const TableList: React.FC = () => {
   const columns = currentType === 'monthly' ? columnsMonthly : columnsWeekly;
 
   const handleExportByDaySite = async () => {
-    // 导出
+    setExportLoading(true);
     const values = form.getFieldsValue();
     const params = {
       ...values,
@@ -137,17 +156,12 @@ const TableList: React.FC = () => {
     };
     delete params.monthRange;
 
-    // 构建 query string
-    // const query = Object.entries(params)
-    //   .filter(([_, v]) => v !== undefined && v !== '')
-    //   .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v as string)}`)
-    //   .join('&');
-
     try {
       const response = await exportCsv(params);
       console.log(response, 'response');
       if (!response.ok) {
         message.error('导出失败');
+        setExportLoading(false);
         return;
       }
       const blob = await response.blob();
@@ -162,10 +176,13 @@ const TableList: React.FC = () => {
       message.success('导出成功');
     } catch (err) {
       message.error('导出异常');
+    } finally {
+      setExportLoading(false);
     }
   };
 
   const handleSearch = (values: any) => {
+    setSearchLoading(true);
     console.log(form.getFieldsValue(), 'form???');
     console.log(values, 'values???');
 
@@ -280,7 +297,7 @@ const TableList: React.FC = () => {
             Reset
           </Button>
 
-          <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
+          <Button type="primary" htmlType="submit" style={{ marginRight: 8 }} loading={searchLoading}>
             Search
           </Button>
           {currentType === 'period' && (
@@ -289,6 +306,7 @@ const TableList: React.FC = () => {
                 onClick={handleExportByDaySite}
                 key="exportByDaySite"
                 style={{ marginRight: 8 }}
+                loading={exportLoading}
               >
                 EXPORT BY DAY AND AREA
               </Button>
@@ -663,8 +681,8 @@ const TableList: React.FC = () => {
         toolBarRender={false}
         params={searchParams}
         request={async (params) => {
-          console.log(params, 'params');
           setCardLoading(true);
+          setSearchLoading(true);
 
           // 映射 ProTable 的 current 到 API 的 page 参数
           const apiParams = {
@@ -675,6 +693,7 @@ const TableList: React.FC = () => {
 
           const res = await getRescues(apiParams);
           setCardLoading(false);
+          setSearchLoading(false);
           console.log(res, 'resres');
           if (res.code === 200 && res.data && res.data.page) {
             // 只在第一页时更新卡片数据
