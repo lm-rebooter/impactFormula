@@ -1,4 +1,4 @@
-import { getRescues, getAllSites, getAllAreas, exportCsv } from '@/services/d2g/api';
+import { getRescues, getAllSites, getAllAreas, exportCsv, exportHtmlFL } from '@/services/d2g/api';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
 import { Button, message, Form, DatePicker, Select, Spin } from 'antd';
@@ -11,6 +11,7 @@ import treeIcon from './assets/tree.svg';
 import electricityIcon from './assets/electricity.svg';
 import gasIcon from './assets/gas.svg';
 import UploadModal from './Components/UploadModal';
+import { exportHtmlToPDF } from './pdfExport';
 
 import styles from './index.module.less';
 
@@ -42,6 +43,7 @@ const TableList: React.FC = () => {
   const [cardLoading, setCardLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
 
   // 动态获取 site/area
   const fetchSites = async () => {
@@ -69,29 +71,30 @@ const TableList: React.FC = () => {
   const isMonthly = currentType === 'monthly';
   console.log(isMonthly, 'isMonthly???');
 
+  // exportHtmlFL
+
   const handleDownload = async (record: any) => {
+    setDownloadingKey(`${record.site}_${record.month}`);
     try {
-      // 假设exportCsv可用于下载单个报告，参数为{ key: record.key }
-      const response = await exportCsv({ key: record.key });
-      if (!response.ok) {
-        message.error('下载失败');
+      const params = {
+        site: record.site,
+        startMonth: record.month || '2025-06',
+      };
+      const res = await exportHtmlFL(params);
+      const html = typeof res === 'string' ? res : res.data;
+      if (!html) {
+        message.error('No report data');
+        setDownloadingKey(null);
         return;
       }
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `report_${record.key || Date.now()}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      message.success('下载成功');
+      await exportHtmlToPDF(html, `Report_${record.site}_${record.month}.pdf`);
+      message.success('Download successful');
     } catch (err) {
-      message.error('下载异常');
+      message.error('Download failed');
+    } finally {
+      setDownloadingKey(null);
     }
   };
-
   const columnsWeekly: ProColumns[] = [
     { title: 'Date', dataIndex: 'date', valueType: 'date' },
     { title: 'Site', dataIndex: 'site', valueType: 'text' },
@@ -110,6 +113,7 @@ const TableList: React.FC = () => {
   ];
 
   const columnsMonthly: ProColumns[] = [
+    { title: 'Month', dataIndex: 'month', valueType: 'text' },
     { title: 'Site', dataIndex: 'site', valueType: 'text' },
     { title: 'Food Saved', dataIndex: 'foodSaved', valueType: 'text' },
     { title: 'CO2 Saved', dataIndex: 'co2Saved', valueType: 'text' },
@@ -135,6 +139,7 @@ const TableList: React.FC = () => {
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleDownload(record);
           }}
+          loading={downloadingKey === `${record.site}_${record.month}`}
         >
           Download
         </Button>
@@ -201,6 +206,7 @@ const TableList: React.FC = () => {
     setSearchParams(params);
 
     actionRef.current?.reload();
+    setSearchLoading(false);
   };
   const handleReset = () => {
     form.resetFields();

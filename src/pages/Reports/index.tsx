@@ -3,8 +3,7 @@ import { Button, Form, Select, Spin, Empty, DatePicker } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import styles from './index.module.less';
 import { getAllSites, getAllAreas, exportHtmlFL } from '@/services/d2g/api';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { exportHtmlToPDF } from '../Dashboard/pdfExport';
 const { RangePicker } = DatePicker;
 
 const ReportsPage: React.FC = () => {
@@ -85,44 +84,8 @@ const ReportsPage: React.FC = () => {
       setDownloadLoading(false);
       return;
     }
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.left = '-9999px';
-    iframe.style.top = '0';
-    iframe.style.width = '1200px';
-    iframe.style.height = '1100px';
-    document.body.appendChild(iframe);
-    if (iframe.contentDocument) {
-      iframe.contentDocument.open();
-      iframe.contentDocument.write(reportHtml);
-      iframe.contentDocument.close();
-    }
-    iframe.onload = () => {
-      setTimeout(async () => {
-        const target = iframe.contentDocument?.body;
-        if (target) {
-          const originalWidth = target.style.width;
-          const exportWidth = 1200;
-          target.style.width = exportWidth + 'px';
-          target.style.minWidth = exportWidth + 'px';
-          target.style.maxWidth = exportWidth + 'px';
-          const canvas = await html2canvas(target, {
-            useCORS: true,
-            backgroundColor: '#fff',
-            scale: 2,
-          });
-          const imgData = canvas.toDataURL('image/png');
-          const pdf = new jsPDF('p', 'pt', [canvas.width, canvas.height]);
-          pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-          pdf.save('ImpactReport.pdf');
-          target.style.width = originalWidth;
-          target.style.minWidth = '';
-          target.style.maxWidth = '';
-        }
-        document.body.removeChild(iframe);
-        setDownloadLoading(false);
-      }, 2000);
-    };
+    await exportHtmlToPDF(reportHtml, 'ImpactReport.pdf');
+    setDownloadLoading(false);
   };
 
   return (
@@ -149,7 +112,11 @@ const ReportsPage: React.FC = () => {
             placeholder={['Start Month', 'End Month']}
           />
         </Form.Item>
-        <Form.Item label="Site" name="site">
+        <Form.Item
+          label="Site"
+          name="site"
+          rules={[{ required: true, message: 'Please select site' }]}
+        >
           <Select
             mode="multiple"
             allowClear

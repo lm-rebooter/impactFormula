@@ -40,7 +40,7 @@ export async function currentUser(options?: { [key: string]: any }) {
 
 /** 退出登录接口 POST /api/login/outLogin */
 export async function outLogin(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/login/outLogin', {
+  return request<Record<string, any>>('/api/account/logout', {
     method: 'POST',
     ...(options || {}),
   });
@@ -169,7 +169,7 @@ export async function exportHtmlFL(
   },
   options?: { [key: string]: any },
 ) {
-  return request<API.ApiResponse<API.FormulaResultData>>('/api/d2l/statistics/export/html/FL', {
+  return request<API.ApiResponse<API.FormulaResultData>>('/api/d2l/statistics/export/html', {
     method: 'GET',
     params: {
       ...params,
