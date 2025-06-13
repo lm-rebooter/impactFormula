@@ -104,7 +104,7 @@ const TableList: React.FC = () => {
     },
     { title: 'Title', dataIndex: 'title', valueType: 'text' },
     { title: 'Area', dataIndex: 'area', valueType: 'text' },
-    { title: 'No. of Links', dataIndex: 'numberOfLikes', valueType: 'digit' },
+    { title: 'No. of Likes', dataIndex: 'numberOfLikes', valueType: 'digit' },
     { title: 'Impressions', dataIndex: 'impressions', valueType: 'digit' },
     { title: 'Saved ($)', dataIndex: 'savedAmount', valueType: 'digit' },
   ];
@@ -121,7 +121,7 @@ const TableList: React.FC = () => {
       sorter: true,
     },
     { title: 'Families Benefitted', dataIndex: 'familiesBenefitted', valueType: 'text' },
-    { title: 'No. of Links', dataIndex: 'numberOfLikes', valueType: 'digit' },
+    { title: 'No. of Likes', dataIndex: 'numberOfLikes', valueType: 'digit' },
     { title: 'Saved ($)', dataIndex: 'savedAmount', valueType: 'digit' },
     {
       title: 'Download Report',
