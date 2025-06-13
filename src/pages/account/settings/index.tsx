@@ -55,19 +55,19 @@ const ChangePassword: React.FC = () => {
           <Form.Item
             label="oldPassword"
             name="oldPassword"
-            rules={[{ required: true, message: 'Please input your oldPassword' }]}
+            rules={[{ required: true, message: 'Please input your old password!' }]}
             hasFeedback
           >
-            <Input.Password placeholder="Enter oldPassword" />
+            <Input.Password placeholder="Enter your old password" />
           </Form.Item>
           <Form.Item
             label="newPassword"
             name="newPassword"
             dependencies={['newPassword']}
             hasFeedback
-            rules={[{ required: true, message: 'Please input your newPassword!' }]}
+            rules={[{ required: true, message: 'Please input your new password!' }]}
           >
-            <Input.Password placeholder="Please input your newPassword!" />
+            <Input.Password placeholder="Please input your new password!" />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" block loading={loading}>

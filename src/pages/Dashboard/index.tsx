@@ -1,4 +1,11 @@
-import { getRescues, getMonthly, getAllSites, getAllAreas, exportCsv, exportHtmlFL } from '@/services/d2g/api';
+import {
+  getRescues,
+  getMonthly,
+  getAllSites,
+  getAllAreas,
+  exportCsv,
+  exportHtmlFL,
+} from '@/services/d2g/api';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
 import { Button, message, Form, DatePicker, Select, Spin } from 'antd';
@@ -74,11 +81,11 @@ const TableList: React.FC = () => {
   // exportHtmlFL
 
   const handleDownload = async (record: any) => {
-    setDownloadingKey(`${record.site}_${record.month}`);
+    setDownloadingKey(record.id);
     try {
       const params = {
         site: record.site,
-        startMonth: record.month || '2025-06',
+        startMonth: record.month,
       };
       const res = await exportHtmlFL(params);
       const html = typeof res === 'string' ? res : res.data;
@@ -139,7 +146,7 @@ const TableList: React.FC = () => {
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleDownload(record);
           }}
-          loading={downloadingKey === `${record.site}_${record.month}`}
+          loading={downloadingKey === record.id}
         >
           Download
         </Button>
@@ -743,13 +750,6 @@ const TableList: React.FC = () => {
           return { data: [], success: true, total: 0 };
         }}
         columns={columns}
-      />
-    </PageContainer>
-  );
-};
-
-export default TableList;
-
       />
     </PageContainer>
   );

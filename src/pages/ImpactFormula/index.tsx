@@ -13,7 +13,7 @@ import electricityIcon from './assets/electricity.svg';
 import gasIcon from './assets/gas.svg';
 
 const ImpactFormula: React.FC = () => {
-  // 卡片数据 state
+  // Card data state
   const [cardStats, setCardStats] = useState<{
     co2Saved?: number;
     waterSaved?: number;
@@ -26,7 +26,7 @@ const ImpactFormula: React.FC = () => {
   const [showCalculationModal, setShowCalculationModal] = useState(false);
   const [form] = Form.useForm();
 
-  // 查询时调用 formula 接口
+  // Call formula API on search
   const handleSearch = async (values: any) => {
     setLoading(true);
     try {

@@ -9,7 +9,7 @@ const UploadModal = ({ onUpdate }) => {
   const uploadProps = {
     name: 'file',
     action: uploadFileWuliuExcel,
-    accept: '.xls,.xlsx,.excel,.csv', // 允许上传的文件格式
+    accept: '.xls,.xlsx,.excel,.csv', // Allowed file formats
     showUploadList: false,
     headers: {
       Authorization: decodeURIComponent(`Bearer ${Cookies.get('token')}`),

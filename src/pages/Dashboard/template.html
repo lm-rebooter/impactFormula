@@ -326,7 +326,7 @@
   <!-- Chart.js for bar charts (optional, can be replaced with static images or SVG for pure HTML) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // 示例数据，仅用于展示
+    // Sample data for demonstration only
     const chartConfigs = [
       {id: 'chart1', data: [1500, 150], color: ['#90caf9', '#43a047'], percent: '-89.4%', positive: false},
       {id: 'chart2', data: [7, 800], color: ['#90caf9', '#43a047'], percent: '+11228.6%', positive: true},
@@ -385,7 +385,7 @@
           animation: { duration: 900, easing: 'easeOutQuart' }
         }
       });
-      // 百分比标注颜色
+      // Percentage label color
       const chartDiv = document.getElementById(cfg.id).closest('.chart');
       const percentDiv = chartDiv.querySelector('.percent');
       if (percentDiv) {
