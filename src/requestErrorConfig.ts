@@ -89,13 +89,21 @@ export const errorConfig: RequestConfig = {
     (config: RequestOptions) => {
       // Intercept request config for customization.
       const token = Cookies.get('token');
-      if (token) {
+      // Do not add Authorization header for login and register
+      const isAuthApi =
+        config?.url?.includes('/api/account/login') ||
+        config?.url?.includes('/api/account/register');
+      if (token && !isAuthApi) {
         config.headers = {
           ...config.headers,
           Authorization: `Bearer ${Cookies.get('token')}`,
         };
       }
       let url = config?.url;
+      console.log(url, 'urlurl');
+      // api/account/login
+      // /api/account/register
+
       if (config?.url && config.url.indexOf('http') !== 0) {
         if (process.env.RUNTIME_ENV !== 'production') {
           // Enable mock mode for local debugging
