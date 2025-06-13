@@ -8,6 +8,7 @@ import type { MenuInfo } from 'rc-menu/lib/interface';
 import React, { useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import HeaderDropdown from '../HeaderDropdown';
+import Cookies from 'js-cookie';
 
 export type GlobalHeaderRightProps = {
   menu?: boolean;
@@ -46,6 +47,7 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
     const res = await outLogin();
     console.log(res, 'rees');
     if (res.code === 200) {
+      Cookies.remove('token');
       const { search, pathname } = window.location;
       const urlParams = new URL(window.location.href).searchParams;
       /** This method will redirect to the location specified by the redirect parameter */
