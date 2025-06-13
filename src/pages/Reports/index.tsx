@@ -45,7 +45,8 @@ const ReportsPage: React.FC = () => {
     setLoading(true);
     setShowPDF(false);
     setTimeout(() => {
-      setPdfUrl('https://static.taoche.com/taochecheicp.pdf');
+      // setPdfUrl('https://static.taoche.com/taochecheicp.pdf');
+      setPdfUrl('');
       setShowPDF(true);
       setLoading(false);
     }, 800);

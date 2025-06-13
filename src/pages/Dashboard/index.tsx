@@ -157,14 +157,17 @@ const TableList: React.FC = () => {
     delete params.monthRange;
 
     try {
-      const response = await exportCsv(params);
-      console.log(response, 'response');
-      if (!response.ok) {
-        message.error('导出失败');
+      const res = await exportCsv(params);
+      console.log(res, 'res--导出接口', typeof res);
+      // 如果res就是CSV字符串
+      if (!res || typeof res !== 'string' || !res.trim()) {
+        message.error('无可导出数据');
         setExportLoading(false);
         return;
       }
-      const blob = await response.blob();
+
+      // 直接保存字符串为csv
+      const blob = new Blob([res], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -297,7 +300,12 @@ const TableList: React.FC = () => {
             Reset
           </Button>
 
-          <Button type="primary" htmlType="submit" style={{ marginRight: 8 }} loading={searchLoading}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            style={{ marginRight: 8 }}
+            loading={searchLoading}
+          >
             Search
           </Button>
           {currentType === 'period' && (
@@ -675,11 +683,16 @@ const TableList: React.FC = () => {
 
       <ProTable<API.RuleListItem, API.PageParams>
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="id"
         search={false}
         options={false}
         toolBarRender={false}
         params={searchParams}
+        pagination={{
+          pageSize: 50,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
+        }}
         request={async (params) => {
           setCardLoading(true);
           setSearchLoading(true);
