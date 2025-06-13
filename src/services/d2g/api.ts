@@ -85,6 +85,29 @@ export async function getRescues(
   });
 }
 
+export async function getMonthly(
+  params: {
+    page?: number;
+    pageSize?: number;
+    [key: string]: any;
+  } = {},
+  options?: { [key: string]: any },
+) {
+  // 默认分页参数
+  const defaultParams = {
+    page: 1,
+    pageSize: 50,
+  };
+  return request<API.ApiResponse<API.RescuePageData>>('/api/d2l/rescue/monthly', {
+    method: 'GET',
+    params: {
+      ...defaultParams,
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 // 上传接口
 export const uploadFileWuliuExcel = `${HOST['/base']}/api/d2l/rescue/upload/csv`;
 

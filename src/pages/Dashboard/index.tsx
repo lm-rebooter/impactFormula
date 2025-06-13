@@ -1,4 +1,4 @@
-import { getRescues, getAllSites, getAllAreas, exportCsv, exportHtmlFL } from '@/services/d2g/api';
+import { getRescues, getMonthly, getAllSites, getAllAreas, exportCsv, exportHtmlFL } from '@/services/d2g/api';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
 import { Button, message, Form, DatePicker, Select, Spin } from 'antd';
@@ -45,7 +45,7 @@ const TableList: React.FC = () => {
   const [exportLoading, setExportLoading] = useState(false);
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
 
-  // 动态获取 site/area
+  // Dynamically fetch site/area
   const fetchSites = async () => {
     const res = await getAllSites();
     console.log(res, 'sssss');
@@ -66,7 +66,7 @@ const TableList: React.FC = () => {
     fetchAreas();
   }, []);
 
-  // 动态columns
+  // Dynamic columns
   const [currentType, setCurrentType] = useState('period');
   const isMonthly = currentType === 'monthly';
   console.log(isMonthly, 'isMonthly???');
@@ -107,7 +107,7 @@ const TableList: React.FC = () => {
     },
     { title: 'Title', dataIndex: 'title', valueType: 'text' },
     { title: 'Area', dataIndex: 'area', valueType: 'text' },
-    { title: 'No. of Likes', dataIndex: 'numberOfLikes', valueType: 'digit' },
+    { title: 'No. of Likes', dataIndex: 'NumberOfLikes', valueType: 'digit' },
     { title: 'Impressions', dataIndex: 'impressions', valueType: 'digit' },
     { title: 'Saved ($)', dataIndex: 'savedAmount', valueType: 'digit' },
   ];
@@ -125,7 +125,7 @@ const TableList: React.FC = () => {
       sorter: true,
     },
     { title: 'Families Benefitted', dataIndex: 'familiesBenefitted', valueType: 'text' },
-    { title: 'No. of Likes', dataIndex: 'numberOfLikes', valueType: 'digit' },
+    { title: 'No. of Likes', dataIndex: 'NumberOfLikes', valueType: 'digit' },
     { title: 'Saved ($)', dataIndex: 'savedAmount', valueType: 'digit' },
     {
       title: 'Download Report',
@@ -163,15 +163,15 @@ const TableList: React.FC = () => {
 
     try {
       const res = await exportCsv(params);
-      console.log(res, 'res--导出接口', typeof res);
-      // 如果res就是CSV字符串
+      console.log(res, 'res--export interface', typeof res);
+      // If res is a CSV string
       if (!res || typeof res !== 'string' || !res.trim()) {
-        message.error('无可导出数据');
+        message.error('No data to export');
         setExportLoading(false);
         return;
       }
 
-      // 直接保存字符串为csv
+      // Directly save string as csv
       const blob = new Blob([res], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -181,9 +181,9 @@ const TableList: React.FC = () => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      message.success('导出成功');
+      message.success('Export successful');
     } catch (err) {
-      message.error('导出异常');
+      message.error('Export failed');
     } finally {
       setExportLoading(false);
     }
@@ -214,7 +214,7 @@ const TableList: React.FC = () => {
     console.log('reset???');
   };
 
-  // 千分位格式化
+  // Thousands separator formatting
   const formatNumber = (val: any) => {
     if (val === null || val === undefined || val === '' || isNaN(val)) return '-';
     return Number(val).toLocaleString();
@@ -703,39 +703,53 @@ const TableList: React.FC = () => {
           setCardLoading(true);
           setSearchLoading(true);
 
-          // 映射 ProTable 的 current 到 API 的 page 参数
-          const apiParams = {
-            ...params,
-            page: params.current, // 将 ProTable 的 current 映射到 API 的 page
-          };
-          delete apiParams.current; // 删除旧的 current 字段
+          // 动态选择接口
+          let apiRes;
+          if (params.type === 'monthly') {
+            apiRes = await getMonthly({
+              ...params,
+              page: params.current,
+            });
+          } else {
+            apiRes = await getRescues({
+              ...params,
+              page: params.current,
+            });
+          }
+          delete params.current;
 
-          const res = await getRescues(apiParams);
           setCardLoading(false);
           setSearchLoading(false);
-          console.log(res, 'resres');
-          if (res.code === 200 && res.data && res.data.page) {
+
+          if (apiRes.code === 200 && apiRes.data && apiRes.data.page) {
             // 只在第一页时更新卡片数据
             if (!params.current || params.current === 1) {
               setCardStats({
-                totalFoodRescued: res.data.totalFoodRescued,
-                co2Saved: res.data.co2Saved,
-                waterSaved: res.data.waterSaved,
-                equivTreesPlanted: res.data.equivTreesPlanted,
-                carKMOffTheRoad: res.data.carKMOffTheRoad,
-                electricitySaved: res.data.electricitySaved,
-                naturalGasSaved: res.data.naturalGasSaved,
+                totalFoodRescued: apiRes.data.totalFoodRescued,
+                co2Saved: apiRes.data.co2Saved,
+                waterSaved: apiRes.data.waterSaved,
+                equivTreesPlanted: apiRes.data.equivTreesPlanted,
+                carKMOffTheRoad: apiRes.data.carKMOffTheRoad,
+                electricitySaved: apiRes.data.electricitySaved,
+                naturalGasSaved: apiRes.data.naturalGasSaved,
               });
             }
             return {
-              data: res.data.page.content,
+              data: apiRes.data.page.content,
               success: true,
-              total: res.data.page.totalElements,
+              total: apiRes.data.page.totalElements,
             };
           }
           return { data: [], success: true, total: 0 };
         }}
         columns={columns}
+      />
+    </PageContainer>
+  );
+};
+
+export default TableList;
+
       />
     </PageContainer>
   );
