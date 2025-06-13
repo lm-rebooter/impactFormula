@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Non-Edible Food Waste Diversion Impact Report</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    .container {
+      max-width: 800px;
+      margin: 32px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      padding: 32px 24px 24px 24px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .header .title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header img {
+      height: 36px;
+    }
+    .report-title {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #2e7d32;
+    }
+    .report-date {
+      font-size: 1rem;
+      color: #888;
+    }
+    .impact-report {
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 16px;
+      color: #444;
+    }
+    .days {
+      color: #2196f3;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .summary-cards {
+      display: flex;
+      gap: 18px;
+      margin: 24px 0 12px 0;
+    }
+    .card {
+      flex: 1;
+      background: #e3f2fd;
+      border-radius: 12px;
+      padding: 18px 0;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 500;
+      box-shadow: 0 1px 4px rgba(33,150,243,0.07);
+    }
+    .card.green {
+      background: #b9f6ca;
+      color: #00695c;
+    }
+    .card .value {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #1565c0;
+    }
+    .card.green .value {
+      color: #00897b;
+    }
+    .thanks {
+      text-align: center;
+      color: #666;
+      margin-bottom: 18px;
+      font-size: 1rem;
+    }
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 24px 0 10px 0;
+      color: #2e7d32;
+    }
+    .contribution-table {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px 32px;
+      margin-bottom: 18px;
+    }
+    .contribution-table .item {
+      flex: 1 1 180px;
+      min-width: 160px;
+      font-size: 1.05rem;
+      color: #444;
+    }
+    .contribution-table .item .label {
+      color: #888;
+      font-size: 0.95rem;
+    }
+    .contribution-table .item .value {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .period-comparison {
+      margin: 18px 0 0 0;
+    }
+    .charts-row {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 12px;
+    }
+    .chart {
+      flex: 1;
+      background: linear-gradient(135deg, #f1f8e9 70%, #e3f2fd 100%);
+      border-radius: 18px;
+      box-shadow: 0 4px 18px rgba(33,150,243,0.10), 0 1.5px 6px rgba(67,160,71,0.07);
+      padding: 18px 8px 8px 8px;
+      text-align: center;
+      min-height: 160px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      transition: box-shadow 0.25s, transform 0.18s;
+    }
+    .chart:hover {
+      box-shadow: 0 10px 32px rgba(33,150,243,0.16), 0 3px 12px rgba(67,160,71,0.10);
+      transform: translateY(-4px) scale(1.025);
+      z-index: 2;
+    }
+    .chart-canvas-wrap {
+      width: 220px;
+      height: 120px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.18);
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(33,150,243,0.04);
+    }
+    .chart .percent {
+      margin-top: 10px;
+      font-size: 1.13rem;
+      font-weight: 700;
+      display: inline-block;
+      padding: 3px 18px;
+      border-radius: 16px;
+      background: linear-gradient(90deg, #fff 60%, #e3f2fd 100%);
+      box-shadow: 0 1px 4px rgba(33,150,243,0.07);
+      letter-spacing: 0.5px;
+      border: 1.5px solid #e3f2fd;
+      position: relative;
+    }
+    .chart .percent.positive {
+      color: #219a4b;
+      border-color: #b9f6ca;
+      background: linear-gradient(90deg, #fff 60%, #b9f6ca 100%);
+    }
+    .chart .percent.negative {
+      color: #e53935;
+      border-color: #ffcdd2;
+      background: linear-gradient(90deg, #fff 60%, #ffcdd2 100%);
+    }
+    .highlight {
+      background: #e0f7fa;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 18px 0 10px 0;
+      color: #00838f;
+      font-size: 1.05rem;
+    }
+    .largest-haul {
+      background: #e8f5e9;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 18px;
+      color: #388e3c;
+      font-size: 1.05rem;
+    }
+    .about {
+      color: #aaa;
+      font-size: 0.95rem;
+      margin-top: 18px;
+      text-align: left;
+    }
+    @media (max-width: 700px) {
+      .container { padding: 12px 2vw; }
+      .summary-cards, .charts-row { flex-direction: column; gap: 12px; }
+      .contribution-table { flex-direction: column; gap: 10px; }
+    }
+    @media (max-width: 900px) {
+      .charts-row { flex-direction: column; gap: 14px; }
+      .chart-canvas-wrap { width: 98vw; max-width: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">
+        <img src="https://img.icons8.com/color/48/000000/leaf.png" alt="logo" />
+        <span class="report-title">Non-Edible Food Waste Diversion</span>
+      </div>
+      <span class="report-date">July 2023</span>
+    </div>
+    <div class="impact-report">IMPACT REPORT</div>
+    <div style="text-align:center; margin-bottom: 8px;">
+      <span>Well done! You have been a zero non-edible food waste business<br>for <span class="days">22097 days</span></span>
+    </div>
+    <div class="summary-cards">
+      <div class="card">
+        <div class="value">82.37 k</div>
+        <div>Families Benefited</div>
+      </div>
+      <div class="card">
+        <div class="value">1.806 k ton</div>
+        <div>CO2 Saved</div>
+      </div>
+      <div class="card green">
+        <div class="value">0.348 k ton</div>
+        <div>Waste Diverted</div>
+      </div>
+    </div>
+    <div class="thanks">
+      Thank you for supporting your local community and helping our mission to keep useful waste out of the bin.
+    </div>
+    <div class="section-title">Your Contribution for Jul 1, 2023 to Jul 31, 2023</div>
+    <div class="contribution-table">
+      <div class="item">
+        <div class="label">Total Number of Collections</div>
+        <div class="value">120</div>
+      </div>
+      <div class="item">
+        <div class="label">CO2 Saved</div>
+        <div class="value">793 kg</div>
+      </div>
+      <div class="item">
+        <div class="label">Waste Diverted</div>
+        <div class="value">152.79 kg</div>
+      </div>
+      <div class="item">
+        <div class="label">Water Saved</div>
+        <div class="value">112,453 litres</div>
+      </div>
+      <div class="item">
+        <div class="label">Families Supported</div>
+        <div class="value">8</div>
+      </div>
+      <div class="item">
+        <div class="label">Money Saved</div>
+        <div class="value">$1,818.21</div>
+      </div>
+    </div>
+    <div class="section-title">Period Comparison</div>
+    <div class="period-comparison">
+      <div class="charts-row">
+        <div class="chart">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart1" width="260" height="140"></canvas>
+          </div>
+          <div class="percent">-89.4%</div>
+        </div>
+        <div class="chart">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart2" width="260" height="140"></canvas>
+          </div>
+          <div class="percent">+11228.6%</div>
+        </div>
+        <div class="chart">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart3" width="260" height="140"></canvas>
+          </div>
+          <div class="percent">+11100.0%</div>
+        </div>
+      </div>
+      <div class="charts-row">
+        <div class="chart">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart4" width="260" height="140"></canvas>
+          </div>
+          <div class="percent negative">-50.0%</div>
+        </div>
+        <div class="chart">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart5" width="260" height="140"></canvas>
+          </div>
+          <div class="percent negative">-88.4%</div>
+        </div>
+        <div class="chart">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart6" width="260" height="140"></canvas>
+          </div>
+          <div class="percent negative">-91.1%</div>
+        </div>
+      </div>
+    </div>
+    <div class="highlight">
+      Highlight<br>
+      209 surplus savers spent 21990 hours in recovering and distributing within the community.
+    </div>
+    <div class="largest-haul">
+      Largest Haul of the Period<br>
+      <b>30.00 kg</b> &nbsp; Date: 2023/4/19 22:07 | Site: TM2 | $ Saved: 357 | Families: 4
+    </div>
+    <div class="about">
+      About us: <a href="https://linktr.ee/d2l.sg" target="_blank" rel="noopener" style="color:#2196f3;text-decoration:underline;">https://linktr.ee/d2l.sg</a><br>
+      <span style="font-size:0.9em;">Disclaimer: impact calculation for informational purposes only.</span>
+    </div>
+  </div>
+  <!-- Chart.js for bar charts (optional, can be replaced with static images or SVG for pure HTML) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // 示例数据，仅用于展示
+    const chartConfigs = [
+      {id: 'chart1', data: [1500, 150], color: ['#90caf9', '#43a047'], percent: '-89.4%', positive: false},
+      {id: 'chart2', data: [7, 800], color: ['#90caf9', '#43a047'], percent: '+11228.6%', positive: true},
+      {id: 'chart3', data: [1, 111], color: ['#90caf9', '#43a047'], percent: '+11100.0%', positive: true},
+      {id: 'chart4', data: [8, 4], color: ['#90caf9', '#e53935'], percent: '-50.0%', positive: false},
+      {id: 'chart5', data: [15000, 1800], color: ['#90caf9', '#e53935'], percent: '-88.4%', positive: false},
+      {id: 'chart6', data: [1200, 110], color: ['#90caf9', '#e53935'], percent: '-91.1%', positive: false},
+    ];
+    chartConfigs.forEach((cfg, idx) => {
+      const ctx = document.getElementById(cfg.id).getContext('2d');
+      const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Previous', 'Current'],
+          datasets: [{
+            data: cfg.data,
+            backgroundColor: cfg.color,
+            borderRadius: 12,
+            barPercentage: 0.55,
+            categoryPercentage: 0.55,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          layout: {
+            padding: { left: 18, right: 8, top: 8, bottom: 8 }
+          },
+          scales: {
+            x: {
+              display: true,
+              grid: { display: false },
+              ticks: {
+                font: { size: 15 },
+                color: '#666',
+                padding: 8
+              }
+            },
+            y: {
+              display: true,
+              beginAtZero: true,
+              grid: { color: '#e0e0e0', drawBorder: false },
+              ticks: {
+                font: { size: 14 },
+                color: '#888',
+                padding: 14,
+                callback: function(value) {
+                  if (Number.isInteger(value)) return value;
+                  return '';
+                }
+              }
+            }
+          },
+          responsive: false,
+          maintainAspectRatio: false,
+          animation: { duration: 900, easing: 'easeOutQuart' }
+        }
+      });
+      // 百分比标注颜色
+      const chartDiv = document.getElementById(cfg.id).closest('.chart');
+      const percentDiv = chartDiv.querySelector('.percent');
+      if (percentDiv) {
+        percentDiv.textContent = cfg.percent;
+        percentDiv.className = 'percent ' + (cfg.positive ? 'positive' : 'negative');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -167,4 +167,11 @@ export default defineConfig({
   },
   esbuildMinifyIIFE: true,
   requestRecord: {},
+  chainWebpack(memo) {
+    memo.module
+      .rule('raw')
+      .test(/\\.html$/)
+      .use('raw-loader')
+      .loader(require.resolve('raw-loader'));
+  },
 });

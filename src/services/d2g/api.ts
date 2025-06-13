@@ -161,6 +161,23 @@ export async function getTotalWeight(
   });
 }
 
+// 导出html
+export async function exportHtmlFL(
+  params: {
+    site?: string;
+    area?: string;
+  },
+  options?: { [key: string]: any },
+) {
+  return request<API.ApiResponse<API.FormulaResultData>>('/api/d2l/statistics/export/html/FL', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** 更新规则 PUT /api/rule */
 export async function updateRule(options?: { [key: string]: any }) {
   return request<API.RuleListItem>('/api/rule', {
