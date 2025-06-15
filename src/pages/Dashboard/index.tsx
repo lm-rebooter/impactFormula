@@ -81,15 +81,18 @@ const TableList: React.FC = () => {
   // exportHtmlFL
 
   const handleDownload = async (record: any) => {
-    setDownloadingKey(record.id);
+    // period: id, monthly: month+site
+    const key = record.month && record.site ? `${record.month}_${record.site}` : record.id;
+    setDownloadingKey(key);
     try {
       const params = {
         site: record.site,
         startMonth: record.month,
       };
       const res = await exportHtmlFL(params);
-      const html = typeof res === 'string' ? res : res.data;
-      if (!html) {
+      // 兼容后端返回 string 或 { data: string }
+      const html = typeof res === 'string' ? res : res?.data;
+      if (!html || typeof html !== 'string') {
         message.error('No report data');
         setDownloadingKey(null);
         return;
@@ -137,20 +140,23 @@ const TableList: React.FC = () => {
     {
       title: 'Download Report',
       dataIndex: 'download',
-      render: (_: unknown, record: any) => (
-        <Button
-          type="link"
-          aria-label="Download Report"
-          tabIndex={0}
-          onClick={() => handleDownload(record)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleDownload(record);
-          }}
-          loading={downloadingKey === record.id}
-        >
-          Download
-        </Button>
-      ),
+      render: (_: unknown, record: any) => {
+        const key = `${record.month ?? ''}_${record.site ?? ''}`;
+        return (
+          <Button
+            type="link"
+            aria-label="Download Report"
+            tabIndex={0}
+            onClick={() => handleDownload(record)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleDownload(record);
+            }}
+            loading={downloadingKey === key}
+          >
+            Download
+          </Button>
+        );
+      },
     },
   ];
 
@@ -171,15 +177,16 @@ const TableList: React.FC = () => {
     try {
       const res = await exportCsv(params);
       console.log(res, 'res--export interface', typeof res);
-      // If res is a CSV string
-      if (!res || typeof res !== 'string' || !res.trim()) {
+      // 如果后端返回结构为 { data: string }
+      const csvString = typeof res === 'string' ? res : res?.data;
+      if (typeof csvString !== 'string' || !csvString.trim()) {
         message.error('No data to export');
         setExportLoading(false);
         return;
       }
 
-      // Directly save string as csv
-      const blob = new Blob([res], { type: 'text/csv;charset=utf-8;' });
+      // 直接保存字符串为csv
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -218,7 +225,8 @@ const TableList: React.FC = () => {
   const handleReset = () => {
     form.resetFields();
     setCurrentType('period');
-    console.log('reset???');
+    setCardStats({});
+    setSearchParams({});
   };
 
   // Thousands separator formatting
@@ -242,9 +250,15 @@ const TableList: React.FC = () => {
             allowClear
             showSearch
             placeholder="Select type"
-            onChange={(val: string) => {
-              console.log(val, 'val???');
+            onChange={async (val: string) => {
               setCurrentType(val);
+              setCardStats({});
+              // 1. 先清空 params，ProTable 立即变成空表
+              setSearchParams({});
+              // 2. 等下一个事件循环再设置新 params，触发新查询
+              setTimeout(() => {
+                setSearchParams({ type: val });
+              }, 0);
               if (val !== 'monthly') {
                 form.setFieldsValue({
                   startDate: undefined,
@@ -694,15 +708,16 @@ const TableList: React.FC = () => {
         </ProCard>
       </Spin>
 
-      <ProTable<API.RuleListItem, API.PageParams>
+      <ProTable<API.RuleListItem, any>
         actionRef={actionRef}
         rowKey="id"
+        // rowKey={currentType === 'monthly' ? (record: any) => `${record.month ?? ''}_${record.site ?? ''}` : 'id'}
         search={false}
         options={false}
         toolBarRender={false}
         params={searchParams}
         pagination={{
-          pageSize: 50,
+          defaultPageSize: 50,
           showSizeChanger: true,
           pageSizeOptions: ['10', '20', '50', '100'],
         }}
@@ -710,17 +725,18 @@ const TableList: React.FC = () => {
           setCardLoading(true);
           setSearchLoading(true);
 
-          // 动态选择接口
           let apiRes;
           if (params.type === 'monthly') {
             apiRes = await getMonthly({
               ...params,
               page: params.current,
+              pageSize: params.pageSize,
             });
           } else {
             apiRes = await getRescues({
               ...params,
               page: params.current,
+              pageSize: params.pageSize,
             });
           }
           delete params.current;
@@ -728,19 +744,17 @@ const TableList: React.FC = () => {
           setCardLoading(false);
           setSearchLoading(false);
 
+          console.log(apiRes, 'apiRes');
           if (apiRes.code === 200 && apiRes.data && apiRes.data.page) {
-            // 只在第一页时更新卡片数据
-            if (!params.current || params.current === 1) {
-              setCardStats({
-                totalFoodRescued: apiRes.data.totalFoodRescued,
-                co2Saved: apiRes.data.co2Saved,
-                waterSaved: apiRes.data.waterSaved,
-                equivTreesPlanted: apiRes.data.equivTreesPlanted,
-                carKMOffTheRoad: apiRes.data.carKMOffTheRoad,
-                electricitySaved: apiRes.data.electricitySaved,
-                naturalGasSaved: apiRes.data.naturalGasSaved,
-              });
-            }
+            setCardStats({
+              totalFoodRescued: apiRes.data.totalFoodRescued,
+              co2Saved: apiRes.data.co2Saved,
+              waterSaved: apiRes.data.waterSaved,
+              equivTreesPlanted: apiRes.data.equivTreesPlanted,
+              carKMOffTheRoad: apiRes.data.carKMOffTheRoad,
+              electricitySaved: apiRes.data.electricitySaved,
+              naturalGasSaved: apiRes.data.naturalGasSaved,
+            });
             return {
               data: apiRes.data.page.content,
               success: true,
